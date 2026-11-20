@@ -114,7 +114,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 .plate{font-size:21px;font-weight:700;letter-spacing:.4px}
 .model{font-size:14px;color:var(--mut2);margin-top:2px}
 .who{display:flex;align-items:center;gap:8px;padding:2px 0 8px;font-size:17px;font-weight:600}
-.who .rate{font-size:14px;font-weight:500;background:var(--gray);border-radius:12px;padding:2px 9px}
+.who .rate{font-size:14px;font-weight:500;background:var(--gray);border-radius:14px;padding:5px 12px;-webkit-touch-callout:none}
+.who .rate:active{background:#e2e2e2}
 .act{display:flex;gap:10px;align-items:center;padding-top:12px;border-top:1px solid var(--line)}
 .msg{flex:1;height:46px;border-radius:23px;background:var(--gray);display:flex;align-items:center;padding:0 18px;color:var(--mut2);font-size:15px}
 .round{width:46px;height:46px;border-radius:50%;background:var(--gray);display:grid;place-items:center}
@@ -740,6 +741,7 @@ function goDone(){ if (app.dataset.state !== 'arrived') return; hideNotif(); buz
   ['mouseup', 'mouseleave'].forEach(ev => zone.addEventListener(ev, off));
   zone.addEventListener('click', () => { const n = Date.now(); if (n - last < 450) goDone(); last = n; });   // ou double-tap
 })();
+document.querySelector('.who .rate').addEventListener('click', goDone);   // toucher la note "★ 5,00" du chauffeur ouvre aussi l'ecran de fin
 
 let rating = 0, tip = null;
 const LBL = ['', 'Décevant', 'Moyen', 'Bien', 'Très bien', 'Excellent !'];
