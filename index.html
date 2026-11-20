@@ -21,6 +21,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 #app{position:fixed;inset:0}
 #map{position:absolute;inset:0;width:100%;height:100%}
 #lmap{position:absolute;inset:0;z-index:0;visibility:hidden;background:#ececec}
+#lmap .leaflet-tile-pane{filter:saturate(.22) brightness(1.09) contrast(.88)}   /* fond OSM grisé : look appli de VTC */
 #attr{position:absolute;top:calc(2px + env(safe-area-inset-top));right:8px;z-index:6;font-size:8px;color:#555;opacity:.55;display:none;pointer-events:none}
 
 /* haut : bouton retour + carte d'itineraire */
@@ -77,6 +78,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 .opt .nm .seats svg{width:13px;height:13px;fill:#000}
 .opt .eta{font-size:13.5px;font-weight:500;margin-top:2px}
 .opt .desc{font-size:13px;color:var(--mut2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#quote{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12.5px;line-height:1.25;font-style:italic}
 .price{font-weight:600;font-size:17px;letter-spacing:-.2px}
 .bolt{width:14px;height:14px}
 @keyframes nudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -208,7 +210,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 
   <!-- VRAIE CARTE (Leaflet + fond CARTO/OpenStreetMap), centree sur le GPS -->
   <div id="lmap"></div>
-  <div id="attr">© OpenStreetMap · © CARTO</div>
+  <div id="attr">© OpenStreetMap contributors</div>
   <div id="ocar" style="display:none">
     <svg viewBox="-11 -22 22 44">
       <rect x="-11" y="-20" width="22" height="42" rx="8" fill="#0003" transform="translate(2 3)"/>
@@ -257,7 +259,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
           <div>
             <div class="nm">Ultra Fast <svg class="bolt"><use href="#bolt"/></svg> <span class="seats"><svg><use href="#pers"/></svg>2</span></div>
             <div class="eta" id="t-ultra"></div>
-            <div class="desc">Chauffeur déjà sur place</div>
+            <div class="desc" id="quote"></div>
           </div>
           <div class="price" data-cfg="price"></div>
         </div>
@@ -313,8 +315,39 @@ const CFG = {
   car: 'Porsche 718 GT4 RS',
   plate: 'GT-718-RS',
   searchMs: 1800,                // duree de "Connexion a un chauffeur" (cale-la sur l'arrivee de la vraie voiture)
-  driveMs: 1500                  // duree de l'arrivee de la voiture sur la carte
+  driveMs: 1500,                 // duree de l'arrivee de la voiture sur la carte
+  quote: ''                      // mets une phrase ici pour forcer la citation (sinon : citation du jour)
 };
+
+/* Citations du jour (ligne sous "Ultra Fast") : une differente chaque jour */
+const QUOTES = [
+  "9000 tr/min, 0 minute, 0 regret.",
+  "Arriver en retard ? Jamais, j'ai un flat-six.",
+  "Le silence est d'or. Le flat-six est d'argent.",
+  "Mon cardio : 9000 tr/min.",
+  "Pourquoi attendre quand on peut décoller ?",
+  "Chez moi, le 0 à 100, c'est l'échauffement.",
+  "Les embouteillages, c'est pour les autres.",
+  "Ça sent le pneu chaud, ça sent le succès.",
+  "J'ai dit 0 minute, pas 1 de politesse.",
+  "Le plein ? Plus tard. Les sensations d'abord.",
+  "Même mon GPS a le vertige.",
+  "Le rapport qualité/prix ? Le rapport 6.",
+  "Mieux vaut tôt que jamais. Mieux vaut très tôt.",
+  "Un virage, c'est juste un tout droit raté.",
+  "Mon pied droit est mon meilleur ami.",
+  "Pas de ralentisseur dans mon vocabulaire.",
+  "Je ne fais pas de bruit, je fais de la musique.",
+  "Chauffeur 5 étoiles, compte-tours 5 chiffres.",
+  "Plus ça monte dans les tours, plus j'ai raison.",
+  "Les pneus sont chauds, le chauffeur aussi.",
+  "Ma GT4 RS vous attend. Elle n'a pas de patience.",
+  "Ça pousse tellement que mon ego recule.",
+  "Un moteur, ça se respecte. Ça se pousse aussi.",
+  "La ceinture, c'est le seul truc qui me retient.",
+  "Mon sac de sport ? C'est le baquet.",
+  "9000 tours, c'est le début de la conversation."
+];
 /* ========================== */
 
 const $ = s => document.querySelector(s);
@@ -324,6 +357,8 @@ const rows = [...document.querySelectorAll('.opt')];
 document.querySelectorAll('[data-cfg]').forEach(e => e.textContent = CFG[e.dataset.cfg]);
 $('#ini').textContent = CFG.driver[0];
 $('#tripmin').textContent = CFG.tripMin;
+const dayNo = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+$('#quote').textContent = CFG.quote || QUOTES[dayNo % QUOTES.length];
 
 const hhmm = m => new Date(Date.now() + m * 60000).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 function fillTimes(){
@@ -367,7 +402,7 @@ function ensureMap(){
   if (typeof L === 'undefined') return false;
   map = L.map('lmap', {zoomControl:false, attributionControl:false, dragging:false, touchZoom:false, scrollWheelZoom:false,
     doubleClickZoom:false, boxZoom:false, keyboard:false, tap:false, zoomSnap:0.25, fadeAnimation:true});
-  const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {subdomains:'abcd', maxZoom:19});
+  const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19});
   tiles.addTo(map);
   tiles.once('load', () => {                       // on bascule sur la vraie carte quand les tuiles sont la
     $('#lmap').style.visibility = 'visible'; $('#map').style.display = 'none'; $('#attr').style.display = 'block';
