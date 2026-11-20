@@ -101,7 +101,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 .ghost{width:100%;height:48px;border:0;border-radius:10px;background:var(--gray);font-size:16px;font-weight:600;font-family:inherit}
 
 /* chauffeur */
-.head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 0 14px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 0 14px;-webkit-touch-callout:none}
 .head h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.2}
 .pill{background:#000;color:#fff;border-radius:8px;padding:5px 10px;font-size:15px;font-weight:600;white-space:nowrap;transition:background .3s}
 [data-state=arrived] .pill{background:var(--green)}
@@ -150,19 +150,24 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 .end-top{text-align:center;margin-top:2px}
 .end-top .t{font-size:15px;color:var(--mut2);font-weight:500}
 .end-top .p{font-size:36px;font-weight:700;letter-spacing:-.8px;margin:2px 0}
-.avatar-lg{width:84px;height:84px;border-radius:50%;background:#d9d9d9;margin:14px auto 8px;display:grid;place-items:center;font-size:36px;font-weight:600;color:#555}
+.avatar-lg{width:64px;height:64px;border-radius:50%;background:#d9d9d9;margin:10px auto 6px;display:grid;place-items:center;font-size:28px;font-weight:600;color:#555}
 .rate-q{text-align:center;font-size:21px;font-weight:600;letter-spacing:-.3px;margin:6px 8px 10px;line-height:1.25}
 .stars{display:flex;justify-content:center;gap:6px;margin-bottom:4px}
-.stars button{background:none;border:0;padding:2px;width:50px;height:50px}
+.stars button{background:none;border:0;padding:2px;width:46px;height:46px}
 .stars svg{width:100%;height:100%;fill:#d9d9d9;transition:fill .15s,transform .15s}
 .stars button.on svg{fill:#ffc043}
 .stars button:active svg{transform:scale(.88)}
 .rate-lbl{text-align:center;min-height:20px;color:var(--mut2);font-size:15px;font-weight:500}
-.stats{display:flex;gap:8px;margin:14px 0 2px}
+#review{display:block;width:100%;height:50px;margin-top:8px;border:0;border-radius:12px;background:var(--gray);padding:13px 14px;
+  font-family:inherit;font-size:16px;line-height:1.3;color:#000;resize:none;outline:none;
+  -webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none}
+#review::placeholder{color:#8a8a8a}
+.th-rev{font-style:italic;color:#333;margin:10px 12px 0;font-size:16px;line-height:1.35}
+.stats{display:flex;gap:8px;margin:12px 0 0}
 .stat{flex:1;background:var(--gray);border-radius:12px;padding:10px 6px;text-align:center}
 .stat b{display:block;font-size:16px;letter-spacing:-.2px}
 .stat span{font-size:12px;color:var(--mut2)}
-.tip-t{font-size:17px;font-weight:600;margin:20px 0 10px}
+.tip-t{font-size:17px;font-weight:600;margin:16px 0 8px}
 .tips{display:flex;gap:8px;flex-wrap:wrap}
 .tipc{border:0;background:var(--gray);border-radius:22px;padding:12px 16px;font-size:15px;font-weight:600;font-family:inherit;color:#000}
 .tipc.sel{background:#000;color:#fff}
@@ -309,7 +314,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
         <div class="opt" id="opt-ultra">
           <svg class="ic"><use href="#car-sport"/></svg>
           <div>
-            <div class="nm">Ultra Fast <svg class="bolt"><use href="#bolt"/></svg> <span class="seats"><svg><use href="#pers"/></svg>2</span></div>
+            <div class="nm">Ultra Fast <svg class="bolt"><use href="#bolt"/></svg> <span class="seats"><svg><use href="#pers"/></svg>1</span></div>
             <div class="eta" id="t-ultra"></div>
             <div class="desc" id="quote"></div>
           </div>
@@ -374,6 +379,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
       <button data-n="5"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.6 6 20.9l1.3-6.7-5-4.7 6.8-.8z"/></svg></button>
     </div>
     <div class="rate-lbl" id="ratelbl"></div>
+    <textarea id="review" rows="1" maxlength="140"></textarea>
     <div class="stats" id="stats"></div>
     <div class="tip-t">Ajouter un pourboire</div>
     <div class="tips">
@@ -389,6 +395,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
     <h2>Merci !</h2>
     <div class="th" id="th-sub"></div>
     <div class="th" id="th-tip"></div>
+    <div class="th-rev" id="th-rev"></div>
     <div class="th2">Prochain trajet : 0 minute.</div>
     <button class="cta" id="done">Terminé</button>
   </div>
@@ -418,6 +425,8 @@ const CFG = {
   notifBody: '',                 // vide = "chauffeur · voiture · plaque"
   priceNum: 189,                 // pour calculer les 10 % de pourboire
   endStats: [['Durée', '0 min 52 s'], ['Vitesse max', '273 km/h'], ['Régime max', '9000 rpm']],   // ecran de fin
+  review: '',                    // faux avis pre-rempli sur l'ecran de fin (laisse '' pour le taper en direct)
+  reviewHint: 'Laissez un avis sur Emylien…',   // texte grise du champ d'avis
   searchMs: 3000,                // duree de "Connexion a un chauffeur" (cale-la sur l'arrivee de la vraie voiture)
   driveMs: 4000,                 // duree de l'arrivee de la voiture sur la carte
   quote: 'Accroche ton slip à 9000 rpm.'   // citation fixe ; mets '' pour revenir aux citations du jour
@@ -463,6 +472,7 @@ document.querySelectorAll('[data-cfg]').forEach(e => e.textContent = CFG[e.datas
 $('#ini').textContent = CFG.driver[0]; $('#ini2').textContent = CFG.driver[0];
 $('#chips').innerHTML = CFG.chips.map(c => `<span class="chip">${c}</span>`).join('');
 $('#stats').innerHTML = CFG.endStats.map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
+$('#review').placeholder = CFG.reviewHint; $('#review').value = CFG.review;
 $('#tripmin').textContent = CFG.tripMin;
 const dayNo = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
 $('#quote').textContent = CFG.quote || QUOTES[dayNo % QUOTES.length];
@@ -722,12 +732,13 @@ function hideNotif(){ clearTimeout(notifT); $('#notif').classList.remove('on'); 
 /* appui long (0,7 s) sur la pastille verte "0 min" quand le chauffeur est arrive = ecran de fin de course */
 function goDone(){ if (app.dataset.state !== 'arrived') return; hideNotif(); buzz(30); app.dataset.state = 'done'; }
 (() => {
-  const pill = $('#pill'); let t;
+  const zone = document.querySelector('.p-found .head'); let t, last = 0;
   const on = () => { t = setTimeout(goDone, 700); }, off = () => clearTimeout(t);
-  pill.addEventListener('touchstart', on, {passive:true});
-  ['touchend', 'touchcancel'].forEach(ev => pill.addEventListener(ev, off));
-  pill.addEventListener('mousedown', on);
-  ['mouseup', 'mouseleave'].forEach(ev => pill.addEventListener(ev, off));
+  zone.addEventListener('touchstart', on, {passive:true});
+  ['touchend', 'touchcancel'].forEach(ev => zone.addEventListener(ev, off));
+  zone.addEventListener('mousedown', on);
+  ['mouseup', 'mouseleave'].forEach(ev => zone.addEventListener(ev, off));
+  zone.addEventListener('click', () => { const n = Date.now(); if (n - last < 450) goDone(); last = n; });   // ou double-tap
 })();
 
 let rating = 0, tip = null;
@@ -753,6 +764,7 @@ tipBtns.forEach(b => b.addEventListener('click', () => {
 $('#sub').addEventListener('click', () => {
   $('#th-sub').textContent = `Note de ${rating || 5} ★ envoyée à ${CFG.driver}`;
   $('#th-tip').textContent = tipText() || 'Aucun pourboire';
+  const rv = $('#review').value.trim(); $('#th-rev').textContent = rv ? `« ${rv} »` : '';
   app.dataset.state = 'thanks'; buzz([20, 40, 20]);
 });
 $('#endx').addEventListener('click', resetAll);
@@ -760,7 +772,7 @@ $('#done').addEventListener('click', resetAll);
 function resetEnd(){
   rating = 0; tip = null;
   stars.forEach(s => s.classList.remove('on')); tipBtns.forEach(x => x.classList.remove('sel'));
-  $('#ratelbl').textContent = ''; $('#tiph').textContent = '';
+  $('#ratelbl').textContent = ''; $('#tiph').textContent = ''; $('#review').value = CFG.review;
 }
 if (location.hash === '#fin') app.dataset.state = 'done';   // raccourci : ouvrir la page avec #fin pour voir l'ecran de fin
 
