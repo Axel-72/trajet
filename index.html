@@ -421,7 +421,27 @@ function onPosition(la, lo){
   if (!ensureMap()) return;
   meMarker.setLatLng(curPos); if (!map.hasLayer(meMarker)) meMarker.addTo(map);
   if (moved > 40) computeRoute();
+  computeRoad();
   applyView(!first && !(moved > 400));
+}
+
+/* trajet d'approche de la voiture : vraie route menant a la rue la plus proche de toi.
+   On demande a OSRM un trajet qui finit sur ta position : la fin du trace est le point de route le plus proche. */
+let roadPath = null, roadKey = null;
+async function computeRoad(){
+  const [la, lo] = curPos, key = la.toFixed(4) + ',' + lo.toFixed(4);
+  if (roadKey === key) return;
+  roadKey = key; roadPath = null;
+  try {
+    const o = [la + 0.005, lo + 0.007];                              // depart ~800 m plus loin
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${o[1]},${o[0]};${lo},${la}?overview=full&geometries=geojson`);
+    const j = await r.json();
+    if (roadKey !== key || !j.routes || !j.routes[0]) return;
+    const pts = j.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    let acc = 0, k = pts.length - 1;
+    while (k > 0 && acc < 650) { acc += haversine(pts[k], pts[k - 1]); k--; }   // on garde les derniers ~650 m (assez long pour arriver de hors champ)
+    roadPath = pts.slice(k);
+  } catch(e){}
 }
 
 /* itineraire reel (OSRM) vers un point fictif a ~2 km, sinon trace de secours */
@@ -474,7 +494,20 @@ function carPlace(e){                    // e : 0 (loin) -> 1 (arretee devant to
     $('#car').setAttribute('transform', `translate(${x} 300) rotate(-90)`);
     return;
   }
-  const d = document.querySelector('.me .dot').getBoundingClientRect();
+  if (roadPath && roadPath.length > 1) {                // la voiture suit la vraie rue et s'arrete au point de route le plus proche
+    const P = roadPath.map(ll => { const p = map.latLngToContainerPoint(ll); return [p.x, p.y]; });
+    const seg = []; let total = 0;
+    for (let i = 1; i < P.length; i++) { const l = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); seg.push(l); total += l; }
+    let s = total * e, i = 0;
+    while (i < seg.length - 1 && s > seg[i]) { s -= seg[i]; i++; }
+    const t = seg[i] ? Math.min(1, s / seg[i]) : 1;
+    const a = P[i], b = P[i + 1];
+    let dx = b[0] - a[0], dy = b[1] - a[1]; const n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n;
+    const x = a[0] + (b[0] - a[0]) * t - dy * 3, y = a[1] + (b[1] - a[1]) * t + dx * 3;   // roule cote droit
+    $('#ocar').style.transform = `translate(${x}px,${y}px) translate(-50%,-50%) rotate(${Math.atan2(dx, -dy) * 180 / Math.PI}deg)`;
+    return;
+  }
+  const d = document.querySelector('.me .dot').getBoundingClientRect();     // secours : arrivee horizontale
   const cx = d.left + d.width / 2, cy = d.top + d.height / 2;
   const start = innerWidth - cx + 50, end = 46;
   const off = start + (end - start) * e;
