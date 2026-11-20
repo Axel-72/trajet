@@ -1352,9 +1352,10 @@ function setSource(src){
 /* ========================= RADARS / POLICE + AVIS DE CONTRAVENTION (blague) ========================= */
 const RAD = []; let radarId = 0, radarDist = 300, actx = null;
 G.radarHit = null; G.radarAuto = false; G.avis = null;
+CFG.policeS = 480;                                                     // abscisse (m depuis la ligne S/F) de la police fixe : ~100 m avant Courbe Dunlop
 CFG.plate = 'GT-718-RS'; CFG.vehicle = 'PORSCHE 718 GT4 RS'; CFG.radarDisclaimer = true;      // disclaimer = petite mention "simulation" en bas de l'avis
 const RTYPES = {
-  police: { label: 'Police', color: '#2d7ff9', alert: 'Police signalée devant' },
+  police: { label: 'Police', color: '#2d7ff9', alert: 'Police signalée sur votre route' },
   fixe:   { label: 'Radar fixe', color: '#e3262e', alert: 'Radar fixe signalé devant' },
   mobile: { label: 'Radar mobile', color: '#f2a900', alert: 'Radar mobile signalé devant' }
 };
@@ -1375,8 +1376,8 @@ function radarLogic(){
   for (const r of RAD){
     const s = radarS(r); if (r.c.d > 80){ r.prev = null; continue; }   // marqueur pose sur un autre trace
     const rel = T.open ? s - G.sDisp : cdiff(s, G.sDisp);                // > 0 : devant, < 0 : derriere
-    if (rel < 500 && rel > 80 && !r.alerted){ r.alerted = true; toast(RTYPES[r.type].alert, 'dans ' + Math.round(rel / 50) * 50 + ' m · ralentis'); speak(RTYPES[r.type].alert); }
-    if (rel > 650) r.alerted = false;
+    if (rel < (r.alertD || 500) && rel > 80 && !r.alerted){ r.alerted = true; toast(RTYPES[r.type].alert, 'dans ' + Math.round(rel / 50) * 50 + ' m · ralentis'); speak(RTYPES[r.type].alert); }
+    if (rel > (r.alertD || 500) + 150) r.alerted = false;
     if (r.prev != null && r.prev > 0 && rel <= 0 && r.prev < 150) onRadarPass(r);
     r.prev = rel;
   }
@@ -1386,7 +1387,7 @@ function onRadarPass(r){
   const kmh = Math.round(G.vDisp * 3.6), lim = curLimit(), over = lim > 0 && kmh > lim;
   r.hit = { v: kmh, lim, t: Date.now(), name: placeName(), type: r.type }; G.radarHit = r.hit;
   if (r.type !== 'police' && over){ flashEffect(); toast('📸 ' + kmh + ' km/h', 'limite ' + lim + ' km/h'); }
-  else toast(RTYPES[r.type].label + (r.type === 'police' ? ' franchie' : ' franchi'), kmh + ' km/h' + (lim ? ' (limite ' + lim + ')' : ''));
+  else if (!r.fixed) toast(RTYPES[r.type].label + (r.type === 'police' ? ' franchie' : ' franchi'), kmh + ' km/h' + (lim ? ' (limite ' + lim + ')' : ''));
   renderRadars();
   if (G.radarAuto && over && r.type !== 'police') setTimeout(() => showGov(r.hit), 2600);
 }
@@ -1586,6 +1587,8 @@ $('#btn-clear').addEventListener('click', () => { G.laps = []; G.bestAuto = null
 (function init(){
   if (!TRACK){ $('#st-msg').textContent = 'Données du circuit manquantes.'; return; }
   T = TC = buildTrack(TRACK);
+  { const ps = CFG.policeS, pp = pointAt(ps), lc = T.corners[T.corners.length - 1];                       // police deja posee en fin de ligne droite des stands (alerte des l'entree de la droite)
+    RAD.push({ id: ++radarId, type: 'police', fixed: true, lat: T.lat0 + pp[1] / T.KY, lon: T.lon0 + pp[0] / T.KX, hit: null, alerted: false, prev: null, c: null, alertD: T.L - lc.sEntry - lc.len + ps }); }
   G.route.dest = store.get('dest', null); renderDest();
   $('#st-circuit').textContent = TRACK.name + ' · ' + (T.L / 1000).toFixed(2).replace('.', ',') + ' km · ' + T.corners.length + ' virages détectés. Virages à venir, freinage, vitesse et chronos.';
   $('#note').textContent = 'Tracé : OpenStreetMap (© contributeurs). Les vitesses cibles et les points sont une estimation, pas un conseil de pilotage.';
@@ -1598,7 +1601,7 @@ $('#btn-clear').addEventListener('click', () => { G.laps = []; G.bestAuto = null
   loadLaps(); resize(); requestAnimationFrame(frame);
 })();
 /* ================= MISE A JOUR AUTOMATIQUE ================= */
-const BUILD = '20261120172107';                 // remplace automatiquement a chaque publication (stamp.js)
+const BUILD = '20261120173430';                 // remplace automatiquement a chaque publication (stamp.js)
 const VERSION_URL = '../version.json';
 function doReload(u){ location.replace(u); }
 const canReload = () => root.dataset.state === 'idle';        // jamais pendant que tu roules
