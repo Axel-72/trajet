@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ececec">
+<title>Vroom</title>
+<style>
+:root{--ink:#000;--mut:#545454;--mut2:#6b6b6b;--line:#e2e2e2;--gray:#f3f3f3;--blue:#276ef1;--green:#05944f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--ink);
+  font-family:"Uber Move","Inter",-apple-system,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;touch-action:manipulation}
+#app{position:fixed;inset:0}
+#map{position:absolute;inset:0;width:100%;height:100%}
+
+/* haut : bouton retour + carte d'itineraire */
+.fab{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;width:44px;height:44px;border-radius:50%;
+  background:#fff;border:0;box-shadow:0 1px 6px #00000033;display:grid;place-items:center;padding:0}
+.fab svg{width:22px;height:22px}
+.route-card{position:absolute;top:calc(14px + env(safe-area-inset-top));left:68px;right:14px;background:#fff;border-radius:12px;
+  box-shadow:0 1px 6px #00000033;padding:8px 14px 8px 36px;font-size:15px;line-height:1.4;font-weight:500}
+.route-card div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.route-card .a{color:var(--mut2);font-weight:400}
+.route-card::before{content:"";position:absolute;left:15px;top:14px;width:8px;height:8px;border-radius:50%;background:#000}
+.route-card::after{content:"";position:absolute;left:15px;top:34px;width:8px;height:8px;background:#000}
+.route-card i{position:absolute;left:18.5px;top:23px;width:1px;height:11px;background:#bbb}
+#app:not([data-state=choose]):not([data-state=searching]) .only-choose{display:none}
+.only-search{display:none}
+[data-state=searching] .only-search{display:inline}
+
+/* feuille du bas */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;
+  box-shadow:0 -2px 14px #00000026;padding:0 16px calc(12px + env(safe-area-inset-bottom))}
+.pane{display:none;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+[data-state=choose] .p-choose,[data-state=searching] .p-search,
+[data-state=found] .p-found,[data-state=arrived] .p-found{display:block}
+.ttl{text-align:center;font-size:16px;font-weight:600;padding:15px 0 13px;margin:0 -16px;border-bottom:1px solid var(--line)}
+
+/* lignes de course */
+.opts{margin:6px -4px 0}
+.opt{display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:8px;padding:11px 12px;
+  border:2px solid transparent;border-radius:12px;margin-bottom:2px}
+.opt.sel{background:var(--gray);border-color:#000}
+.opt svg.ic{width:74px;height:44px}
+.opt .nm{font-size:17px;font-weight:600;display:flex;align-items:center;gap:7px;letter-spacing:-.1px}
+.opt .nm .seats{display:inline-flex;align-items:center;gap:2px;font-size:13px;font-weight:500;color:var(--mut)}
+.opt .nm .seats svg{width:13px;height:13px;fill:#000}
+.opt .eta{font-size:13.5px;font-weight:500;margin-top:2px}
+.opt .desc{font-size:13px;color:var(--mut2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opt > div:nth-child(2){min-width:0}
+.opt .nm{white-space:nowrap}
+.price{font-weight:600;font-size:17px;letter-spacing:-.2px}
+.bolt{width:14px;height:14px}
+.tag{font-size:11px;font-weight:700;background:#000;color:#fff;border-radius:4px;padding:2px 5px;letter-spacing:.2px}
+@keyframes nudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.opt.nudge{animation:nudge .35s}
+.pay{display:flex;align-items:center;gap:12px;padding:12px 4px 12px;border-top:1px solid var(--line);margin-top:4px;font-size:15px;font-weight:500}
+.pay .card{width:28px;height:19px;border-radius:3px;background:linear-gradient(135deg,#444,#111)}
+.pay .chev{margin-left:auto;color:var(--mut2);font-size:20px;line-height:1}
+.cta{width:100%;height:52px;border:0;border-radius:10px;background:#000;color:#fff;font-size:17px;font-weight:600;
+  font-family:inherit;transition:transform .08s,opacity .08s}
+.cta:active{transform:scale(.985);opacity:.85}
+
+/* recherche */
+.search-ttl{font-size:20px;font-weight:600;padding:18px 0 4px;letter-spacing:-.2px}
+.bar{height:3px;background:#e2e2e2;overflow:hidden;position:relative;margin:0 -16px}
+.bar i{position:absolute;top:0;bottom:0;left:0;width:35%;background:var(--blue);animation:slide 1.1s linear infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+.bar.full i{width:100%;animation:none;background:#000;transition:background .3s}
+[data-state=arrived] .bar.full i{background:var(--green)}
+.search-sub{color:var(--mut2);font-size:15px;margin:2px 0 18px}
+.ghost{width:100%;height:48px;border:0;border-radius:10px;background:var(--gray);font-size:16px;font-weight:600;font-family:inherit}
+
+/* chauffeur */
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 0 14px}
+.head h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.2}
+.pill{background:#000;color:#fff;border-radius:8px;padding:5px 10px;font-size:15px;font-weight:600;white-space:nowrap;transition:background .3s}
+[data-state=arrived] .pill{background:var(--green)}
+.drv{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px}
+.vis{position:relative;width:118px;height:56px}
+.vis svg.ic{position:absolute;right:0;top:4px;width:92px;height:52px}
+.avatar{position:absolute;left:0;bottom:-2px;width:50px;height:50px;border-radius:50%;background:#d9d9d9;border:3px solid #fff;
+  display:grid;place-items:center;font-size:21px;font-weight:600;color:#555}
+.info{text-align:right}
+.plate{font-size:21px;font-weight:700;letter-spacing:.4px}
+.model{font-size:14px;color:var(--mut2);margin-top:2px}
+.who{display:flex;align-items:center;gap:8px;padding:2px 0 14px;font-size:17px;font-weight:600}
+.who .rate{font-size:14px;font-weight:500;background:var(--gray);border-radius:12px;padding:2px 9px}
+.act{display:flex;gap:10px;align-items:center;padding-top:12px;border-top:1px solid var(--line)}
+.msg{flex:1;height:46px;border-radius:23px;background:var(--gray);display:flex;align-items:center;padding:0 18px;color:var(--mut2);font-size:15px}
+.round{width:46px;height:46px;border-radius:50%;background:var(--gray);display:grid;place-items:center}
+.round svg{width:20px;height:20px}
+.short{display:flex;justify-content:space-around;padding:14px 0 2px;font-size:12.5px;font-weight:500;text-align:center}
+.short div{display:flex;flex-direction:column;align-items:center;gap:6px}
+.short .round{width:44px;height:44px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="car-std" viewBox="0 0 64 40">
+      <path d="M4 29 L8 20 Q10 14 18 14 L40 14 Q46 14 50 19 L57 22.5 Q62 24.5 62 29 L62 31 L4 31Z" fill="#2a2a2a"/>
+      <path d="M16 15.5 L38 15.5 L46 20 L13 20Z" fill="#b9c2cc"/>
+      <path d="M20 17 L37 17 L42 20 L18 20Z" fill="#8f9aa6" opacity=".5"/>
+      <circle cx="17" cy="31" r="5.2" fill="#111" stroke="#fff" stroke-width="1.6"/>
+      <circle cx="49" cy="31" r="5.2" fill="#111" stroke="#fff" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="car-comf" viewBox="0 0 64 40">
+      <path d="M3 29 L8 20 Q10 13 19 13 L41 13 Q47 13 51 18.5 L58 22.5 Q63 24.5 63 29 L63 31 L3 31Z" fill="#0f0f10"/>
+      <path d="M17 14.5 L39 14.5 L47 19.5 L14 19.5Z" fill="#aab4bf"/>
+      <path d="M52 22 L60 24.5" stroke="#555" stroke-width="1"/>
+      <circle cx="17" cy="31" r="5.2" fill="#111" stroke="#fff" stroke-width="1.6"/>
+      <circle cx="49" cy="31" r="5.2" fill="#111" stroke="#fff" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="car-sport" viewBox="0 0 64 40">
+      <path d="M3 29 L13 21 Q22 15 34 15 L45 16 Q54 18 60 25 L62 29 L62 31 L3 31Z" fill="#e6e8eb"/>
+      <path d="M3 29 L13 21 Q22 15 34 15" fill="none" stroke="#b7bcc3" stroke-width="1"/>
+      <path d="M0 15 L16 15 L16 17.5 L0 17.5Z" fill="#111"/>
+      <path d="M3 17.5 L5 17.5 L5 21 L3 21Z" fill="#111"/>
+      <path d="M24 16.5 L37 16.5 L44 20 L20 20Z" fill="#37424f"/>
+      <circle cx="16" cy="31" r="5.2" fill="#111" stroke="#fff" stroke-width="1.6"/>
+      <circle cx="49" cy="31" r="5.2" fill="#111" stroke="#fff" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z" fill="#000"/></symbol>
+    <symbol id="pers" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z"/></symbol>
+  </defs>
+</svg>
+
+<div id="app" data-state="choose">
+
+  <!-- CARTE (decor) -->
+  <svg id="map" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">
+    <rect width="390" height="844" fill="#ececec"/>
+    <path d="M-20 420 L140 330 L260 400 L420 300 L420 380 L270 470 L150 410 L-20 500Z" fill="#c5dff0"/>
+    <rect x="100" y="140" width="85" height="150" rx="6" fill="#d4e8cf"/>
+    <rect x="215" y="530" width="105" height="90" rx="6" fill="#d4e8cf"/>
+    <rect x="-10" y="530" width="80" height="70" rx="6" fill="#e2e2e2"/>
+    <rect x="340" y="140" width="60" height="150" rx="6" fill="#e2e2e2"/>
+    <g stroke="#dcdcdc" stroke-linecap="round" fill="none" stroke-width="24">
+      <path d="M-20 120H420M-20 300H420M-20 520H420M-20 700H420M80 -20V860M195 -20V860M330 -20V860"/>
+    </g>
+    <g stroke="#fff" stroke-linecap="round" fill="none" stroke-width="21">
+      <path d="M-20 120H420M-20 300H420M-20 520H420M-20 700H420M80 -20V860M195 -20V860M330 -20V860"/>
+    </g>
+    <g stroke="#fff" stroke-linecap="round" fill="none" stroke-width="9">
+      <path d="M-20 210H420M-20 410H420M-20 610H420M137 -20V860M262 -20V860M20 -20V860"/>
+    </g>
+    <g font-size="9" fill="#8d8d8d" font-family="sans-serif">
+      <text x="206" y="580" transform="rotate(90 206 580)">Rue de la Gare</text>
+      <text x="14" y="296">Av. du Général Leclerc</text>
+      <text x="236" y="696">Bd. Nationale</text>
+    </g>
+
+    <!-- radar de recherche -->
+    <g class="only-search">
+      <circle cx="195" cy="300" r="8" fill="#276ef1" fill-opacity=".2">
+        <animate attributeName="r" from="8" to="170" dur="2.1s" begin="0s" repeatCount="indefinite"/>
+        <animate attributeName="fill-opacity" from=".28" to="0" dur="2.1s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="195" cy="300" r="8" fill="#276ef1" fill-opacity=".2">
+        <animate attributeName="r" from="8" to="170" dur="2.1s" begin="0.7s" repeatCount="indefinite"/>
+        <animate attributeName="fill-opacity" from=".28" to="0" dur="2.1s" begin="0.7s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="195" cy="300" r="8" fill="#276ef1" fill-opacity=".2">
+        <animate attributeName="r" from="8" to="170" dur="2.1s" begin="1.4s" repeatCount="indefinite"/>
+        <animate attributeName="fill-opacity" from=".28" to="0" dur="2.1s" begin="1.4s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- itineraire -->
+    <g class="only-choose">
+      <polyline points="195,300 195,120 330,120" fill="none" stroke="#000" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+      <rect x="322" y="112" width="16" height="16" fill="#000"/>
+      <rect x="327" y="117" width="6" height="6" fill="#fff"/>
+      <g transform="translate(330 96)">
+        <rect x="-26" y="-18" width="52" height="22" rx="6" fill="#000"/>
+        <path d="M-5 4 L0 10 L5 4Z" fill="#000"/>
+        <text id="tripmin" x="0" y="-3" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="sans-serif"></text>
+      </g>
+    </g>
+
+    <!-- position -->
+    <circle cx="195" cy="300" r="10" fill="#276ef1" opacity=".25">
+      <animate attributeName="r" values="10;26;10" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".3;0;.3" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="195" cy="300" r="8" fill="#276ef1" stroke="#fff" stroke-width="3"/>
+
+    <!-- voiture -->
+    <g id="car" style="display:none" transform="translate(470 300) rotate(-90)">
+      <rect x="-10" y="-20" width="20" height="40" rx="7" fill="#0003" transform="translate(2 3)"/>
+      <rect x="-9" y="-19" width="18" height="38" rx="7" fill="#111"/>
+      <rect x="-6.5" y="-9" width="13" height="7" rx="2" fill="#6b7280"/>
+      <rect x="-6" y="7" width="12" height="5" rx="2" fill="#4b5563"/>
+      <rect x="-10" y="15" width="20" height="3" rx="1" fill="#000"/>
+    </g>
+  </svg>
+
+  <!-- bouton retour : appui long = remise a zero pour refaire une prise -->
+  <button class="fab" id="back" aria-label="Retour">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <div class="route-card only-choose"><i></i>
+    <div class="a" id="pickup">Ma position</div>
+    <div data-cfg="dest"></div>
+  </div>
+
+  <div class="sheet">
+
+    <!-- 1. CHOIX -->
+    <div class="pane p-choose">
+      <div class="ttl">Choisissez une course</div>
+      <div class="opts">
+        <div class="opt sel" id="opt-eco">
+          <svg class="ic"><use href="#car-std"/></svg>
+          <div>
+            <div class="nm">Eco <span class="seats"><svg><use href="#pers"/></svg>4</span></div>
+            <div class="eta" id="t-eco"></div>
+            <div class="desc">Trajets abordables</div>
+          </div>
+          <div class="price">14,20 €</div>
+        </div>
+        <div class="opt" id="opt-conf">
+          <svg class="ic"><use href="#car-comf"/></svg>
+          <div>
+            <div class="nm">Confort <span class="seats"><svg><use href="#pers"/></svg>4</span></div>
+            <div class="eta" id="t-conf"></div>
+            <div class="desc">Voitures récentes</div>
+          </div>
+          <div class="price">19,80 €</div>
+        </div>
+        <div class="opt" id="opt-ultra">
+          <svg class="ic"><use href="#car-sport"/></svg>
+          <div>
+            <div class="nm">Ultra Fast <svg class="bolt"><use href="#bolt"/></svg> <span class="seats"><svg><use href="#pers"/></svg>2</span></div>
+            <div class="eta" id="t-ultra"></div>
+            <div class="desc">Chauffeur déjà sur place</div>
+          </div>
+          <div class="price" data-cfg="price"></div>
+        </div>
+      </div>
+
+      <div class="pay"><span class="card"></span>•••• 4242<span class="chev">›</span></div>
+      <button class="cta" id="cta">Choisir Eco</button>
+    </div>
+
+    <!-- 2. RECHERCHE -->
+    <div class="pane p-search">
+      <div class="bar" style="margin-top:0"><i></i></div>
+      <div class="search-ttl">Connexion à un chauffeur…</div>
+      <div class="search-sub">Ultra Fast · Arrive dans 0 min</div>
+      <button class="ghost">Annuler</button>
+    </div>
+
+    <!-- 3/4. CHAUFFEUR TROUVE / ARRIVE -->
+    <div class="pane p-found">
+      <div class="bar full" style="margin-top:0"><i></i></div>
+      <div class="head"><h3 id="status">Retrouvez votre chauffeur</h3><span class="pill">0 min</span></div>
+      <div style="border-top:1px solid var(--line);margin:0 -16px"></div>
+      <div class="drv">
+        <div class="vis">
+          <svg class="ic"><use href="#car-sport"/></svg>
+          <div class="avatar" id="ini"></div>
+        </div>
+        <div class="info"><div class="plate" data-cfg="plate"></div><div class="model" data-cfg="car"></div></div>
+      </div>
+      <div class="who"><span data-cfg="driver"></span><span class="rate">★ <span data-cfg="rating"></span></span></div>
+      <div class="act">
+        <div class="msg">Envoyer un message…</div>
+        <div class="round"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>
+      </div>
+      <div class="short">
+        <div><span class="round"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>Sécurité</div>
+        <div><span class="round"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></span>Partager</div>
+        <div><span class="round"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Prise en charge</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ===== A MODIFIER ICI ===== */
+const CFG = {
+  dest: 'Le circuit',            // destination affichee
+  tripMin: '18 min',             // duree de trajet affichee sur la carte
+  price: '189,00 €',             // prix de l'Ultra Fast
+  driver: 'Emylien',
+  rating: '5,00',
+  car: 'Porsche 718 GT4 RS',
+  plate: 'GT-4RS-72',
+  searchMs: 1800,                // duree de "Connexion a un chauffeur" (cale-la sur l'arrivee de la vraie voiture)
+  driveMs: 1500                  // duree de l'arrivee de la voiture sur la carte
+};
+/* ========================== */
+
+const $ = s => document.querySelector(s);
+const app = $('#app'), cta = $('#cta'), ultra = $('#opt-ultra');
+const rows = [...document.querySelectorAll('.opt')];
+
+document.querySelectorAll('[data-cfg]').forEach(e => e.textContent = CFG[e.dataset.cfg]);
+$('#ini').textContent = CFG.driver[0];
+$('#tripmin').textContent = CFG.tripMin;
+
+const hhmm = m => new Date(Date.now() + m * 60000).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+function fillTimes(){
+  $('#t-eco').textContent   = hhmm(4) + ' · à 4 min';
+  $('#t-conf').textContent  = hhmm(6) + ' · à 6 min';
+  $('#t-ultra').textContent = hhmm(0) + ' · à 0 min';
+}
+fillTimes();
+
+const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} };
+const goFS = () => { try { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || (()=>{})).call(el); } catch(e){} };
+
+let actx = null;
+function ding(){
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime;
+    [[880,0],[1175,.14]].forEach(([f,d]) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t+d); g.gain.linearRampToValueAtTime(.25, t+d+.01); g.gain.exponentialRampToValueAtTime(.001, t+d+.5);
+      o.connect(g).connect(actx.destination); o.start(t+d); o.stop(t+d+.55);
+    });
+  } catch(e){}
+}
+
+/* BOUTON 1 : selectionner Ultra Fast (les autres lignes sont du decor) */
+ultra.addEventListener('click', () => {
+  if (app.dataset.state !== 'choose') return;
+  rows.forEach(r => r.classList.remove('sel'));
+  ultra.classList.add('sel');
+  cta.textContent = 'Choisir Ultra Fast';
+  buzz(15); goFS();
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+});
+
+/* BOUTON 2 : commander */
+cta.addEventListener('click', () => {
+  if (app.dataset.state !== 'choose') return;
+  if (!ultra.classList.contains('sel')) {            // pas Ultra Fast : on fait vibrer la ligne
+    ultra.classList.remove('nudge'); void ultra.offsetWidth; ultra.classList.add('nudge'); buzz(30); return;
+  }
+  buzz([30, 50, 30]);
+  app.dataset.state = 'searching';
+  setTimeout(found, CFG.searchMs);
+});
+
+function found(){
+  const car = $('#car');
+  car.setAttribute('transform', 'translate(470 300) rotate(-90)');
+  app.dataset.state = 'found';
+  $('#status').textContent = 'Retrouvez votre chauffeur';
+  ding(); buzz(60);
+  const x0 = 470, x1 = 236, t0 = performance.now();
+  (function step(t){
+    const p = Math.min(1, (t - t0) / CFG.driveMs);
+    const e = 1 - Math.pow(1 - p, 4);                // arrive vite, freine fort
+    car.setAttribute('transform', `translate(${x0 + (x1 - x0) * e} 300) rotate(-90)`);
+    if (p < 1) requestAnimationFrame(step); else arrived();
+  })(t0);
+}
+function arrived(){
+  app.dataset.state = 'arrived';
+  $('#status').textContent = 'Votre chauffeur est arrivé';
+  ding(); buzz([200, 80, 200]);
+}
+
+/* appui long sur la fleche retour = remise a zero (pour refaire une prise) */
+let lp;
+const back = $('#back');
+const reset = () => {
+  app.dataset.state = 'choose';
+  rows.forEach(r => r.classList.remove('sel')); $('#opt-eco').classList.add('sel');
+  cta.textContent = 'Choisir Eco';
+  $('#car').style.display = 'none'; fillTimes(); buzz(20);
+};
+back.addEventListener('touchstart', () => { lp = setTimeout(reset, 600); }, {passive:true});
+['touchend','touchcancel'].forEach(ev => back.addEventListener(ev, () => clearTimeout(lp)));
+back.addEventListener('mousedown', () => { lp = setTimeout(reset, 600); });
+['mouseup','mouseleave'].forEach(ev => back.addEventListener(ev, () => clearTimeout(lp)));
+
+/* la voiture n'est visible que pendant found/arrived */
+new MutationObserver(() => {
+  const s = app.dataset.state;
+  $('#car').style.display = (s === 'found' || s === 'arrived') ? '' : 'none';
+}).observe(app, {attributes:true, attributeFilter:['data-state']});
+
+/* ===== VRAIE POSITION GPS (adresse de prise en charge) ===== */
+function setPickup(txt){ $('#pickup').textContent = txt; }
+async function locate(){
+  try { const c = localStorage.getItem('vroom_pickup'); if (c) setPickup(c); } catch(e){}   // derniere adresse connue (prises suivantes / hors-ligne)
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const {latitude: la, longitude: lo} = pos.coords;
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=fr&lat=${la}&lon=${lo}`);
+      const a = (await r.json()).address || {};
+      const street = [a.house_number, a.road || a.pedestrian || a.path].filter(Boolean).join(' ');
+      const town = a.city || a.town || a.village || a.municipality || '';
+      const txt = [street, town].filter(Boolean).join(', ') || (la.toFixed(5) + ', ' + lo.toFixed(5));
+      setPickup(txt);
+      try { localStorage.setItem('vroom_pickup', txt); } catch(e){}
+    } catch(e) { setPickup(la.toFixed(5) + ', ' + lo.toFixed(5)); }   // pas de reseau : on affiche les coordonnees
+  }, () => {}, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
+}
+locate();
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+</script>
+</body>
+</html>
