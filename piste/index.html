@@ -13,7 +13,7 @@
 <title>Piste</title>
 <style>
 :root{--bg:#0b0d10;--panel:#14181d;--ink:#fff;--mut:#98a2ad;--line:#ffffff1f;--red:#ff3b30;--grn:#2ecc71;--amb:#ffb020;--blue:#2d7ff9}
-html[data-mode=waze]{--bg:#e9edf1;--panel:#fff;--ink:#111;--mut:#5d6773;--line:#0000001a}
+html[data-mode=waze]{--bg:#262f3d;--panel:#232326;--ink:#fff;--mut:#9aa3ad;--line:#ffffff1a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
   font-family:-apple-system,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums;touch-action:none}
@@ -146,38 +146,60 @@ html:not([data-state=idle]) #start{display:none}
 html[data-mode=waze] #bottom{display:none}
 html[data-mode=waze] #brake{display:none !important}
 html[data-mode=waze] #gps.ok{display:none}
-/* camera type navigation : canvas plus haut que l'ecran (on voit loin devant), voiture dans le bas, inclinaison forte, fondu vers l'horizon */
-html[data-mode=waze] #cv,html[data-mode=waze] #tl{top:-45%;bottom:auto;height:145%;transform:perspective(620px) rotateX(50deg) scale(1.35);transform-origin:50% 87%;
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26%);mask-image:linear-gradient(to bottom,transparent 0,#000 26%)}
-/* bandeau de manoeuvre */
-html[data-mode=waze] #nx{display:grid;grid-template-columns:62px 1fr;grid-template-areas:"ic dist" "ic name" "ic desc";column-gap:12px;row-gap:0;
-  padding:10px 14px 12px 12px;background:#27313d;border:0;border-radius:16px;box-shadow:0 6px 18px #0005;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* camera type navigation : voiture a ~76 % de la hauteur, canvas plus haut que l'ecran (on voit loin devant), inclinaison forte, fondu vers l'horizon */
+html[data-mode=waze] #cv,html[data-mode=waze] #tl{left:-50%;right:auto;width:200%;top:-50%;bottom:auto;height:145%;transform:perspective(760px) rotateX(42deg) scale(1.3);transform-origin:50% 87%;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%)}
+html[data-mode=waze] #tl{filter:none}
+/* ---- bandeau de manoeuvre : noir, pleine largeur, fleche + distance + panneau de route ---- */
+html[data-mode=waze] #top{left:0;right:0;top:0;display:block}
+html[data-mode=waze] #nxw{display:block}
+html[data-mode=waze] #nx{display:grid;grid-template-columns:62px 1fr;grid-template-areas:"ic dist" "ic name" "ic desc";column-gap:18px;row-gap:3px;align-items:center;
+  min-height:calc(env(safe-area-inset-top) + 98px);padding:calc(env(safe-area-inset-top) + 8px) 18px 12px 20px;background:#000;border:0;border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 html[data-mode=waze] #nx > div:nth-child(2){display:contents}
-html[data-mode=waze] #nx-ic{grid-area:ic;align-self:center;width:60px;height:60px}
-html[data-mode=waze] .nx-d{grid-area:dist;text-align:left;display:flex;align-items:baseline;gap:4px}
-html[data-mode=waze] .nx-d b{font-size:40px;line-height:1.05}
-html[data-mode=waze] .nx-d small{font-size:18px;color:#fff;font-weight:700;margin:0}
+html[data-mode=waze] #nx-ic{grid-area:ic;justify-self:center;width:58px;height:58px}
+html[data-mode=waze] .nx-d{grid-area:dist;text-align:left;display:flex;align-items:baseline;gap:7px}
+html[data-mode=waze] .nx-d b,html[data-mode=waze] .nx-d small{font-size:29px;font-weight:700;letter-spacing:-.4px;color:#fff;line-height:1.05;margin:0}
 html[data-mode=waze] #nx-tgt{display:none}
-html[data-mode=waze] #nx-name{grid-area:name;font-size:19px;font-weight:600}
-html[data-mode=waze] #nx-desc{grid-area:desc;font-size:13px}
+html[data-mode=waze] #nx-name{grid-area:name;font-size:21px;font-weight:600;display:flex;align-items:center;gap:10px;min-width:0;color:#fff;white-space:normal;overflow:visible}
+html[data-mode=waze] #nx-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+html[data-mode=waze] #nx-desc{grid-area:desc;font-size:13px;color:#9aa3ad}
+html[data-mode=waze] #nx-name:empty,html[data-mode=waze] #nx-desc:empty{display:none}
+html[data-src=route] #nx-desc{display:none !important}
 html[data-mode=waze] .nx-bar{display:none}
 html[data-mode=waze] #nx.brake{background:#c5271f}
 html[data-mode=waze] #nx.brake #nx-desc{color:#fff;font-weight:700}
+.ref{font-style:normal;display:inline-block;padding:2px 9px 3px;border-radius:7px;background:#ffd633;color:#111;font-weight:800;font-size:20px;line-height:1.15;letter-spacing:-.3px;flex:none}
+.ref.A{background:#1a63b5;color:#fff}.ref.N{background:#d8262b;color:#fff}.ref.E{background:#1b8a4a;color:#fff}
+/* manoeuvre suivante + voies : onglets noirs accroches sous le bandeau */
+html[data-mode=waze] #nx-more{margin-top:0;display:flex;flex-direction:column;align-items:center;gap:0}
 html[data-mode=waze] #nx-more .mini:nth-child(n+2){display:none}
-html[data-mode=waze] .mini{background:#27313d;border-radius:0 0 14px 14px;margin:-6px 0 0 18px;padding:9px 14px 6px;font-size:13px;box-shadow:0 4px 10px #0004}
-/* guidage de voies */
+html[data-mode=waze] .mini{background:#000;border-radius:0 0 16px 16px;margin:0;padding:6px 16px 8px;font-size:14px;color:#fff;box-shadow:none}
+html[data-mode=waze] .mini span{color:#9aa3ad}
 #lanes{display:none}
-html[data-mode=waze] #lanes.on{display:flex;margin-top:6px;background:#27313d;border-radius:14px;padding:6px 8px;gap:4px;width:fit-content;box-shadow:0 4px 12px #0004}
-.lane{width:54px;height:46px;display:grid;place-items:center;border-radius:10px;color:#6f7c8a}
-.lane.act{color:#fff;background:#3b4959}
+html[data-mode=waze] #lanes.on{display:flex;margin:0 auto;background:#000;border-radius:0 0 16px 16px;padding:2px 10px 8px;gap:2px;width:fit-content;box-shadow:none}
+.lane{width:54px;height:46px;display:grid;place-items:center;border-radius:10px;color:#5b636e}
+.lane.act{color:#fff;background:#23272d}
 .lane svg{width:34px;height:34px}
-/* limitation + vitesse */
-/* comme Waze : en temps normal, seul le petit panneau de limitation ; la vitesse actuelle n'apparait (cercle rouge, juste sous le panneau) que si on depasse */
-#wz-sp{position:absolute;z-index:6;left:12px;bottom:calc(106px + env(safe-area-inset-bottom));display:none;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px}
+/* boutons ronds noirs : boussole (gauche), musique + son (droite) */
+.wzb{position:absolute;z-index:6;width:52px;height:52px;border-radius:50%;border:0;background:#050506;display:none;place-items:center;padding:0;box-shadow:0 2px 8px #0007;color:#fff}
+html[data-mode=waze] .wzb{display:grid}
+.wzb svg{width:28px;height:28px}
+#wz-comp{left:12px;top:calc(env(safe-area-inset-top) + 112px)}
+#wz-music{right:12px;top:calc(env(safe-area-inset-top) + 112px)}
+#wz-vol{right:12px;top:calc(env(safe-area-inset-top) + 172px)}
+/* nom de la rue : pastille noire juste sous la fleche */
+#wz-street{position:absolute;z-index:4;left:50%;top:81.75%;transform:translate(-50%,-50%);display:none;max-width:calc(100% - 164px);padding:9px 20px;border-radius:24px;background:rgba(0,0,0,.94);color:#fff;
+  font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+html[data-mode=waze] #wz-street.on{display:block}
+html[data-mode=waze] #side{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 176px);transform:translateX(-50%);align-items:center}
+html[data-mode=waze] #btn-menu{display:none}
+html[data-mode=waze] #gps{background:#000c;color:#fff;box-shadow:none}
+/* limitation + vitesse : comme Waze, seul le petit panneau en temps normal ; le cercle rouge (vitesse actuelle) n'apparait, juste sous le panneau, que si on depasse */
+#wz-sp{position:absolute;left:12px;bottom:calc(100% + 12px);display:none;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px}
 html[data-mode=waze] #wz-sp{display:flex}
-#wz-limit{width:54px;height:54px;border-radius:50%;background:#fff;border:6px solid #e3262e;display:grid;place-items:center;box-shadow:0 3px 10px #0004}
+#wz-limit{width:54px;height:54px;border-radius:50%;background:#fff;border:6px solid #e3262e;display:grid;place-items:center;box-shadow:0 3px 10px #0006}
 #wz-limit b{font-size:20px;font-weight:800;color:#111;letter-spacing:-1px}
-#wz-speed{display:none;width:64px;height:64px;border-radius:50%;flex-direction:column;align-items:center;justify-content:center;background:#e3262e;border:3px solid #fff;box-shadow:0 3px 10px #0005}
+#wz-speed{display:none;width:64px;height:64px;border-radius:50%;flex-direction:column;align-items:center;justify-content:center;background:#e3262e;border:3px solid #fff;box-shadow:0 3px 10px #0007}
 #wz-speed.over,#wz-speed.free{display:flex}
 #wz-speed.free{background:#fff;border-color:#dde2e8}
 #wz-speed b{font-size:28px;font-weight:800;line-height:1;color:#fff}
@@ -191,29 +213,29 @@ html[data-mode=waze] #wz-sp{display:flex}
 #vig{position:fixed;inset:0;z-index:7;pointer-events:none;box-shadow:inset 0 0 90px 14px rgba(227,38,46,.8);opacity:0}
 #vig.flash{animation:vig .95s}
 @keyframes vig{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
-/* boutons a droite */
-html[data-mode=waze] #wz-side{position:absolute;z-index:6;right:12px;bottom:calc(124px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px}
-#wz-side button{width:50px;height:50px;border-radius:50%;border:0;background:#fff;box-shadow:0 3px 10px #0004;display:grid;place-items:center;padding:0}
-#wz-side svg{width:26px;height:26px}
-/* barre du bas facon ETA */
-html[data-mode=waze] #wz-bar{display:block;position:absolute;z-index:5;left:0;right:0;bottom:0;background:#fff;color:#111;border-radius:22px 22px 0 0;
-  box-shadow:0 -4px 18px #0003;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+/* barre du bas : gris anthracite, poignee, loupe / heure d'arrivee / itineraires */
+html[data-mode=waze] #wz-bar{display:block;position:absolute;z-index:5;left:0;right:0;bottom:0;background:#232326;color:#ececef;border-radius:0;
+  box-shadow:0 -6px 18px #0006;padding:20px 16px calc(12px + env(safe-area-inset-bottom))}
+.wz-grip{position:absolute;left:50%;top:7px;width:44px;height:4px;border-radius:2px;background:#58585d;transform:translateX(-50%)}
 .wz-row{display:flex;align-items:center;gap:12px}
-.wz-row button{width:46px;height:46px;border-radius:50%;border:0;background:#eef1f4;display:grid;place-items:center;padding:0;flex:none}
-.wz-row svg{width:22px;height:22px}
+.wz-row button{width:46px;height:46px;border-radius:50%;border:0;background:#39393d;color:#cfcfd4;display:grid;place-items:center;padding:0;flex:none}
+.wz-row svg{width:23px;height:23px}
 .wz-eta{flex:1;text-align:center;min-width:0}
-#wz-main{display:block;font-size:31px;font-weight:700;letter-spacing:-.6px;line-height:1.05;color:#1e9e50}
-#wz-sub{display:block;font-size:14px;color:#5d6773;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#wz-main{display:block;font-size:30px;font-weight:700;letter-spacing:-.3px;line-height:1.1;color:#ececef}
+#wz-sub{display:block;font-size:18px;color:#d0d0d5;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #wz-sub em{font-style:normal;font-weight:800}
-#wz-sub em.pos{color:#e3262e} #wz-sub em.neg{color:#1e9e50}
-#wz-foot{text-align:center;font-size:12px;color:#6b7580;margin-top:6px}
-#wz-foot b{color:#111;font-weight:700}
+#wz-sub em.pos{color:#ff5a52} #wz-sub em.neg{color:#34d27b}
+#wz-foot{text-align:center;font-size:12px;color:#8e8e95;margin-top:6px}
+#wz-foot b{color:#d6d6da;font-weight:700}
+html[data-src=route] #wz-foot{display:none}
+#wz-report{position:absolute;right:8px;bottom:calc(100% + 10px);width:64px;height:64px;border-radius:17px;border:0;background:#4b3f24;display:grid;place-items:center;padding:0;box-shadow:0 3px 10px #0006}
+#wz-report svg{width:42px;height:42px}
 .mini-in{width:76px;border:0;background:#eef0f3;border-radius:10px;padding:8px 10px;font-size:16px;font-family:inherit;text-align:right;outline:none;-webkit-user-select:text;user-select:text}
 
 /* ================= MODE ROUTE : fond de carte + destination ================= */
 #tl{position:absolute;inset:0;width:100%;height:100%;display:none;filter:saturate(.3) brightness(1.07) contrast(.92)}
 html[data-src=route] #tl{display:block}
-#attr{position:absolute;z-index:6;top:calc(60px + env(safe-area-inset-top));right:10px;font-size:9px;color:#444;opacity:.6;display:none;pointer-events:none}
+#attr{position:absolute;z-index:6;top:calc(env(safe-area-inset-top) + 100px);left:50%;transform:translateX(-50%);font-size:8px;color:#fff;opacity:.3;display:none;pointer-events:none;white-space:nowrap}
 html[data-src=route] #attr{display:block}
 #dest-sec{display:none}
 html[data-src=route] #dest-sec{display:block}
@@ -313,19 +335,21 @@ html[data-src=route] #dest-sec{display:block}
   </div>
 
   <div id="vig"></div>
-  <div class="wz" id="wz-sp">
-    <div id="wz-limit"><b id="wz-lim-v">69</b></div>
-    <div id="wz-speed"><b id="wz-spd-v">0</b><small>km/h</small></div>
-  </div>
-  <div class="wz" id="wz-side">
-    <button id="wz-report" aria-label="Signaler"><svg viewBox="0 0 24 24" fill="none" stroke="#2d7ff9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5M12 17.5v.1"/></svg></button>
-    <button id="wz-vol" aria-label="Son"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
-  </div>
+  <button class="wzb" id="wz-comp" aria-label="Boussole"><svg viewBox="0 0 24 24"><g id="wz-needle" style="transform-origin:12px 12px"><path d="M12 2.5 15.4 12H12z" fill="#e8372f"/><path d="M12 2.5 8.6 12H12z" fill="#c42a24"/><path d="M12 21.5 15.4 12H12z" fill="#e6e6ea"/><path d="M12 21.5 8.6 12H12z" fill="#a4a4ab"/></g></svg></button>
+  <button class="wzb" id="wz-music" aria-label="Audio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10.6 16.2V8.4l5-1.2v7.6"/><circle cx="9" cy="16.6" r="1.7"/><circle cx="14" cy="15.2" r="1.7"/></svg></button>
+  <button class="wzb" id="wz-vol" aria-label="Son"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5H7l4.5-3.7v12.4L7 14.5H3.5z"/><path d="M16.2 7.8v5.4M16.2 16.3v.1"/></svg></button>
+  <div id="wz-street"></div>
   <div class="wz" id="wz-bar">
+    <div class="wz-grip"></div>
+    <div class="wz" id="wz-sp">
+      <div id="wz-limit"><b id="wz-lim-v">69</b></div>
+      <div id="wz-speed"><b id="wz-spd-v">0</b><small>km/h</small></div>
+    </div>
+    <button id="wz-report" aria-label="Signaler"><svg viewBox="0 0 24 24"><path d="M12 3.4 21.3 19.4H2.7z" fill="#ffc400" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 10.6v7.2M8.4 14.2h7.2" stroke="#111" stroke-width="2.2" stroke-linecap="round"/></svg></button>
     <div class="wz-row">
-      <button id="wz-x" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button id="wz-x" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.3"/><path d="M15.4 15.4 20 20"/></svg></button>
       <div class="wz-eta"><b id="wz-main">—</b><span id="wz-sub"></span></div>
-      <button id="wz-alt" aria-label="Itinéraires"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L3.5 7.5M7 4l3.5 3.5M17 20V4M17 20l-3.5-3.5M17 20l3.5-3.5"/></svg></button>
+      <button id="wz-alt" aria-label="Itinéraires"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5v-7M12 13.5 6 6M12 13.5 18 6M14.6 5.6H18.4v3.8"/></svg></button>
     </div>
     <div id="wz-foot"></div>
   </div>
@@ -766,7 +790,7 @@ function updateHud(){
   $('#nx-name').textContent = c.name;
   $('#nx-desc').textContent = (c.dir === 'L' ? 'Gauche ' : 'Droite ') + Math.round(c.angle / 5) * 5 + '° · ' + c.type + (c.chic ? ' · chicane' : '');
   $('#nx-tgt').textContent = '→ ' + Math.round(c.vt * 3.6) + ' km/h';
-  $('#nx-dist').textContent = Math.max(0, Math.round(first.d / 5) * 5);
+  $('#nx-dist').textContent = Math.max(0, Math.round(first.d / 5) * 5); $('#nx-unit').textContent = 'm';
   $('#nx-fill').style.width = (clamp(1 - first.d / 300, 0, 1) * 100) + '%';
   nx.classList.toggle('brake', braking); $('#brake').classList.toggle('on', braking);
   if (braking && !G.wasBraking){ flash('red'); buzz([50, 30, 50]); }
@@ -806,14 +830,18 @@ function syncWaze(kmh, gn){
   if (!over && G.over) sp.classList.remove('over');       // en dessous : retour au blanc
   G.over = over;
   radarLogic();
-  if (route){                                              // barre facon Waze : heure d'arrivee / duree / distance restante
+  const st = $('#wz-street'); let road = '';
+  if (route){
+    if (TR && TR.roads && G.hasFix){ let k = 0; for (let i = 0; i < TR.roads.length; i++){ if (TR.roads[i].s <= G.sDisp + 2) k = i; else break; } road = TR.roads[k].name || TR.roads[k].ref || ''; }
+  } else if (G.hasFix) road = 'Circuit Bugatti';
+  if (st.textContent !== road){ st.textContent = road; st.classList.toggle('on', !!road); }
+  if (route){                                              // barre facon Waze : heure d'arrivee en grand, puis duree • distance
     const ok = TR && G.hasFix && G.route.state !== 'arrived', main = $('#wz-main'), sub = $('#wz-sub');
     if (ok){
-      const t = clamp(G.sDisp / TR.ds, 0, TR.N - 1), rem = Math.max(0, TR.totalT - TR.tcum[Math.floor(t)]);
-      main.textContent = rem >= 3600 ? Math.floor(rem / 3600) + ' h ' + String(Math.round(rem % 3600 / 60)).padStart(2, '0') : Math.max(1, Math.round(rem / 60)) + ' min';
-      sub.textContent = ((TR.L - G.sDisp) / 1000).toFixed(1).replace('.', ',') + ' km · ' + hm(new Date(Date.now() + rem * 1000));
-    } else { main.textContent = '—'; sub.textContent = ''; }
-    $('#wz-foot').innerHTML = G.route.dest ? 'Vers <b>' + esc(G.route.dest.name) + '</b>' : 'Aucune destination';
+      const t = clamp(G.sDisp / TR.ds, 0, TR.N - 1), rem = Math.max(0, TR.totalT - TR.tcum[Math.floor(t)]), km = (TR.L - G.sDisp) / 1000;
+      main.textContent = hm(new Date(Date.now() + rem * 1000));
+      sub.textContent = (rem >= 3600 ? Math.floor(rem / 3600) + ' h ' + String(Math.round(rem % 3600 / 60)).padStart(2, '0') : Math.max(1, Math.round(rem / 60)) + ' min') + ' \u2022 ' + (km >= 10 ? Math.round(km) : km.toFixed(1)) + ' km';
+    } else { main.textContent = G.route.state === 'arrived' ? 'Arrivé' : '—'; sub.textContent = ''; }
     return;
   }
   $('#wz-main').textContent = G.lapStart != null ? fmt(gn - G.lapStart, 1) : '—';
@@ -852,7 +880,7 @@ function draw(){
   if (!T) return;
   const waze = root.dataset.mode === 'waze', nu = G.northUp;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.fillStyle = waze ? '#e9edf1' : '#0b0d10'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = waze ? '#262f3d' : '#0b0d10'; ctx.fillRect(0, 0, W, H);
   const N = T.N, ds = T.ds, s = G.sDisp, p0 = pointAt(s), th = G.camAng;
   const mpp = lerp(0.26, 0.7, clamp(G.vDisp / 55, 0, 1)) * (waze ? 1.25 : 1), sc = 1 / mpp;
   const cx = W / 2, cy = H * (waze ? 0.87 : 0.68), sT = Math.sin(th), cT = Math.cos(th);
@@ -862,16 +890,17 @@ function draw(){
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   // anneau complet
   ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]); for (let i = 1; i < N; i++) ctx.lineTo(P[i][0], P[i][1]); ctx.closePath();
-  if (waze){ ctx.strokeStyle = '#c3cad3'; ctx.lineWidth = roadW + 5; ctx.stroke(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = roadW; ctx.stroke(); }
+  if (waze){ ctx.strokeStyle = '#1b222d'; ctx.lineWidth = roadW + 5; ctx.stroke(); ctx.strokeStyle = '#566176'; ctx.lineWidth = roadW; ctx.stroke(); }
   else { ctx.strokeStyle = '#1d232a'; ctx.lineWidth = roadW; ctx.stroke(); ctx.strokeStyle = '#303942'; ctx.lineWidth = 1.5; ctx.stroke(); }
   // ligne de depart / arrivee
   { const i = 0, a = P[i], b = P[1], dx = b[0] - a[0], dy = b[1] - a[1], n = Math.hypot(dx, dy) || 1, nx = -dy / n, ny = dx / n, w = roadW * 0.6;
-    ctx.strokeStyle = waze ? '#111' : '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(a[0] - nx * w, a[1] - ny * w); ctx.lineTo(a[0] + nx * w, a[1] + ny * w); ctx.stroke(); }
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(a[0] - nx * w, a[1] - ny * w); ctx.lineTo(a[0] + nx * w, a[1] + ny * w); ctx.stroke(); }
   // trace a venir
   const i0 = Math.floor(s / ds), cnt = Math.ceil(CFG.lookAhead / ds);
   const ahd = (from, n, fn) => { ctx.beginPath(); ctx.moveTo(cx, cy); for (let k = 1; k <= n; k++){ const q = P[(from + k) % N]; ctx.lineTo(q[0], q[1]); } fn(); };
-  ahd(i0, cnt, () => { ctx.strokeStyle = waze ? '#2d7ff9' : '#e9eef3'; ctx.lineWidth = waze ? Math.max(6, roadW * 0.5) : Math.max(3.5, roadW * 0.3); ctx.stroke(); });
-  if (waze){   // chevrons blancs sur l'itineraire
+  if (waze) ahd(i0, cnt, () => { ctx.strokeStyle = '#7f8a3a'; ctx.lineWidth = Math.max(8, roadW * 0.5) + 3; ctx.stroke(); });
+  ahd(i0, cnt, () => { ctx.strokeStyle = waze ? '#33ddff' : '#e9eef3'; ctx.lineWidth = waze ? Math.max(8, roadW * 0.5) : Math.max(3.5, roadW * 0.3); ctx.stroke(); });
+  if (false){   // (chevrons supprimes : Waze n'en affiche pas)
     ctx.fillStyle = '#fff';
     for (let d = 40; d < CFG.lookAhead; d += 45){
       const k = Math.floor((s + d) / ds) % N, a = P[k], b = P[(k + 1) % N], ang = Math.atan2(b[1] - a[1], b[0] - a[0]), z = Math.max(4, roadW * 0.22);
@@ -889,7 +918,7 @@ function draw(){
     const ai = Math.floor(c.sApex / ds), pa = P[ai % N], pb = P[(ai + 4) % N], pc = P[(ai - 4 + N) % N];
     let mx = (pb[0] + pc[0]) / 2 - pa[0], my = (pb[1] + pc[1]) / 2 - pa[1]; const mn = Math.hypot(mx, my) || 1; mx /= mn; my /= mn;
     const off = roadW * 0.5 + 16, lx = pa[0] - mx * off, ly = pa[1] - my * off;
-    ctx.fillStyle = waze ? '#1b2b40' : sev(c.angle); ctx.beginPath(); ctx.arc(lx, ly, 11, 0, 7); ctx.fill();
+    ctx.fillStyle = waze ? '#000' : sev(c.angle); ctx.beginPath(); ctx.arc(lx, ly, 11, 0, 7); ctx.fill(); if (waze){ ctx.strokeStyle = '#8a94a3'; ctx.lineWidth = 1.5; ctx.stroke(); }
     ctx.fillStyle = waze ? '#fff' : '#000'; ctx.font = '700 12px -apple-system,Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(c.num, lx, ly + 0.5);
   }
   // repere de freinage du prochain virage
@@ -904,10 +933,20 @@ function draw(){
   if (waze) drawRadarMarks(tx);
   // voiture
   ctx.save(); ctx.translate(cx, cy); ctx.rotate(nu ? (Math.PI / 2 - th) : 0);
-  if (waze){ ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.arc(2, 3, 17, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill(); ctx.fillStyle = '#2d7ff9'; ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(9, 9); ctx.lineTo(0, 4); ctx.lineTo(-9, 9); ctx.closePath(); ctx.fill(); }
+  if (waze) wazeCar();
   else { ctx.fillStyle = '#ff3b30'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(0, -16); ctx.lineTo(11, 12); ctx.lineTo(0, 6); ctx.lineTo(-11, 12); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   ctx.restore();
+  if (waze) setNeedle(nu ? 0 : Math.atan2(-cT, sT) * 180 / Math.PI);
   drawMini();
+}
+let needleDeg = null;
+function setNeedle(d){ d = Math.round(d); if (d === needleDeg) return; needleDeg = d; const n = document.getElementById('wz-needle'); if (n) n.style.transform = 'rotate(' + d + 'deg)'; }
+function wazeCar(){                                                   // fleche cyan 3D + halo, comme Waze
+  ctx.fillStyle = 'rgba(125,155,190,.24)'; ctx.beginPath(); ctx.arc(0, 2, 25, 0, 7); ctx.fill();
+  const poly = (dy, col, st) => { ctx.beginPath(); ctx.moveTo(0, -19 + dy); ctx.lineTo(15, 12 + dy); ctx.lineTo(0, 5 + dy); ctx.lineTo(-15, 12 + dy); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); if (st){ ctx.strokeStyle = st; ctx.lineWidth = 1.6; ctx.stroke(); } };
+  ctx.lineJoin = 'round';
+  for (let k = 6; k >= 1; k--) poly(k, k > 3 ? '#0a6a80' : '#0b7f98');
+  poly(0, '#12b4d2', '#bff3fd');
 }
 function drawMini(){
   if (root.dataset.mode === 'waze') return;
@@ -1005,15 +1044,17 @@ function buildRoute(rt){
     }
     totalT = cT[cT.length - 1];
   } else for (let i = 0; i < N; i++) tcum[i] = rt.duration * i / (N - 1);
-  const steps = leg.steps, sc = Lr / (steps.reduce((a, s) => a + s.distance, 0) || 1), man = []; let acc = 0;
+  const steps = leg.steps, sc = Lr / (steps.reduce((a, s) => a + s.distance, 0) || 1), man = [], roads = []; let acc = 0;
+  const refOf = st => String(st.ref || '').split(/[;,]/)[0].replace(/\s+/g, '').toUpperCase();
   steps.forEach((st, idx) => {
     const s = acc * sc; acc += st.distance;
+    roads.push({ s, name: st.name || '', ref: refOf(st) });
     const info = maneuverInfo(st); if (!info) return;
     let lanes = null;                                                // voies : donnees de la fin de l'etape precedente
     if (idx > 0){ const its = steps[idx - 1].intersections || []; for (let q = its.length - 1; q >= 0; q--) if (its[q].lanes){ lanes = its[q].lanes; break; } }
-    man.push(Object.assign({ idx, s, name: st.name || '', lanes }, info));
+    man.push(Object.assign({ idx, s, name: st.name || '', ref: refOf(st), lanes }, info));
   });
-  return { open: true, route: true, N, ds, L: (N - 1) * ds, X, Y, hd, kap: null, corners: [], lat0, lon0, KX, KY, lim, tcum, totalT, maneuvers: man, dist: rt.distance };
+  return { open: true, route: true, N, ds, L: (N - 1) * ds, X, Y, hd, kap: null, corners: [], lat0, lon0, KX, KY, lim, tcum, totalT, maneuvers: man, roads, dist: rt.distance };
 }
 
 /* --- calcul / recalcul de l'itineraire --- */
@@ -1072,7 +1113,7 @@ function laneIcon(ind){
   return arrowSVG(/left/.test(ind) || ind === 'uturn' ? 'L' : 'R', ind === 'uturn' ? 180 : /sharp/.test(ind) ? 125 : /slight/.test(ind) ? 35 : 75);
 }
 function fmtDist(d){
-  if (d >= 1000) return [(d / 1000).toFixed(d >= 10000 ? 0 : 1).replace('.', ','), 'km'];
+  if (d >= 1000) return [(d / 1000).toFixed(d >= 10000 ? 0 : 1), 'km'];
   return [String(d >= 100 ? Math.round(d / 50) * 50 : Math.max(0, Math.round(d / 10) * 10)), 'm'];
 }
 const spokenDist = d => d >= 900 ? 'un kilomètre' : Math.round(d / 100) * 100 + ' mètres';
@@ -1108,11 +1149,13 @@ function routeCues(m, i, d){
   if (d < 700 && d > 400) say(key + ':a', 'Dans ' + spokenDist(d) + ', ' + m.text.charAt(0).toLowerCase() + m.text.slice(1));
   if (d < 170) say(key + ':b', m.text + (m.name ? ', sur ' + m.name : ''));
 }
+const REF_RE = /^[A-Z]{1,2}\d{1,4}[A-Z]?$/;
+const nameHTML = (name, ref) => (ref && REF_RE.test(ref) ? `<i class="ref ${ref[0]}">${esc(ref)}</i>` : '') + (name ? `<span>${esc(name)}</span>` : '');
 function updateHudRoute(kmh){
   const gn = gnow(), R = G.route;
   updateGps(); syncWaze(kmh, gn);
   $('#nx').classList.remove('brake'); $('#brake').classList.remove('on');
-  const set = (icon, dist, unit, name, desc) => { $('#nx-ic').innerHTML = icon; $('#nx-dist').textContent = dist; $('#nx-unit').textContent = unit; $('#nx-name').textContent = name; $('#nx-desc').textContent = desc; };
+  const set = (icon, dist, unit, name, desc, ref) => { $('#nx-ic').innerHTML = icon; $('#nx-dist').textContent = dist; $('#nx-unit').textContent = unit; $('#nx-name').innerHTML = nameHTML(name, ref); $('#nx-desc').textContent = desc; };
   $('#nx-more').innerHTML = '';
   const none = (name, desc, dist) => { set('', dist || '—', '', name, desc || ''); setLanes(null); };
   if (!R.dest) return none('Choisis une destination', 'Menu ⋯ › Destination');
@@ -1123,7 +1166,7 @@ function updateHudRoute(kmh){
   const list = TR.maneuvers; let i = list.findIndex(x => x.s > G.sDisp - 8);
   if (i < 0){ const [dd, du] = fmtDist(Math.max(0, TR.L - G.sDisp)); set(FLAG_SVG, dd, du, R.dest.name, 'Tout droit'); setLanes(null); return; }
   const m = list[i], d = Math.max(0, m.s - G.sDisp), [dd, du] = fmtDist(d);
-  set(manIcon(m), dd, du, m.name || m.text, m.name ? m.text : '');
+  set(manIcon(m), dd, du, m.name || (m.ref ? '' : m.text), m.name ? m.text : '', m.ref);
   const m2 = list[i + 1];
   if (m2 && m2.s - m.s < 500) $('#nx-more').innerHTML = `<div class="mini">${manIcon(m2)}${esc(m2.name || m2.text)}<span>${Math.round((m2.s - G.sDisp) / 10) * 10} m</span></div>`;
   setLanesRoute(m, d); routeCues(m, i, d);
@@ -1137,10 +1180,42 @@ function updateHudRoute(kmh){
 /* --- fond de carte OpenStreetMap dessine sur le canvas (rotation / zoom identiques a la route) --- */
 const TILES = new Map();
 function tileURL(z, x, y){ return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`; }
+/* palette nuit facon Waze : terre bleu marine, parcs vert sombre, eau bleu profond, routes gris-bleu, textes clairs */
+const NIGHT = (() => {
+  const A = [[255, [86, 97, 118]], [246, [66, 75, 92]], [241, [38, 47, 61]], [226, [44, 54, 70]], [205, [34, 42, 55]], [186, [27, 34, 45]], [120, [27, 34, 45]], [70, [190, 199, 212]], [0, [214, 221, 232]]];
+  const lut = new Uint8ClampedArray(256 * 3);
+  for (let L = 0; L < 256; L++){
+    let i = 0; while (i < A.length - 2 && L < A[i + 1][0]) i++;
+    const hi = A[i], lo = A[i + 1], f = clamp((L - lo[0]) / (hi[0] - lo[0] || 1), 0, 1);
+    for (let c = 0; c < 3; c++) lut[L * 3 + c] = lo[1][c] + (hi[1][c] - lo[1][c]) * f;
+  }
+  return lut;
+})();
+function recolorTile(img){
+  const w = img.naturalWidth || 256, h = img.naturalHeight || 256, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+  const d = g.getImageData(0, 0, w, h), a = d.data;
+  for (let i = 0; i < a.length; i += 4){
+    const r = a[i], gg = a[i + 1], b = a[i + 2], L = (r * 299 + gg * 587 + b * 114) / 1000 | 0, mx = Math.max(r, gg, b), sat = mx - Math.min(r, gg, b);
+    let R, G2, B;
+    if (gg > r + 6 && gg > b + 12){ const k = clamp(0.82 + (L - 190) / 160, 0.8, 1.08); R = 31 * k; G2 = 77 * k; B = 58 * k; }            // parcs, bois
+    else if (b > r + 25 && b >= gg - 2){ const k = clamp(0.85 + (L - 190) / 200, 0.8, 1.1); R = 27 * k; G2 = 63 * k; B = 92 * k; }       // eau
+    else if (sat >= 35 && r >= b + 20){ R = 82; G2 = 92; B = 112; }                                                                     // routes colorees (jaune, orange, rose)
+    else { R = NIGHT[L * 3]; G2 = NIGHT[L * 3 + 1]; B = NIGHT[L * 3 + 2]; }
+    a[i] = R; a[i + 1] = G2; a[i + 2] = B;
+  }
+  g.putImageData(d, 0, 0); return c;
+}
 function getTile(z, x, y){
   const k = z + '/' + x + '/' + y; let t = TILES.get(k);
-  if (!t){ t = new Image(); t.src = tileURL(z, x, y); TILES.set(k, t); if (TILES.size > 240) TILES.delete(TILES.keys().next().value); }
-  return t;
+  if (!t){
+    t = { c: null }; TILES.set(k, t); if (TILES.size > 240) TILES.delete(TILES.keys().next().value);
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => { try { t.c = recolorTile(img); } catch(e){ t.c = img; } };
+    img.onerror = () => { const p = new Image(); p.onload = () => { t.c = p; }; p.src = tileURL(z, x, y); };      // sans CORS : tuile telle quelle
+    img.src = tileURL(z, x, y);
+  }
+  return t.c;
 }
 const tl = $('#tl'), tctx = tl.getContext('2d');
 function drawTiles(lat, lon, th, sc, cx, cy, nu){
@@ -1148,14 +1223,14 @@ function drawTiles(lat, lon, th, sc, cx, cy, nu){
   const latR = lat * Math.PI / 180, cosl = Math.cos(latR);
   const z = clamp(Math.round(Math.log2(156543.03 * cosl * sc)), 13, 19), n = Math.pow(2, z), tileM = 40075016.686 * cosl / n;
   const fx = (lon + 180) / 360 * n, fy = (1 - Math.log(Math.tan(latR) + 1 / cosl) / Math.PI) / 2 * n;
-  const rad = Math.hypot(W, H) / 2 / (tileM * sc) + 1, sT = Math.sin(th), cT = Math.cos(th);
+  const rad = Math.hypot(W / 2, Math.max(cy, H - cy)) / (tileM * sc) + 1, sT = Math.sin(th), cT = Math.cos(th);
   const a = nu ? sc : sc * sT, b = nu ? 0 : -sc * cT, c = nu ? 0 : sc * cT, d = nu ? sc : sc * sT;
   tctx.setTransform(DPR * a, DPR * b, DPR * c, DPR * d, DPR * cx, DPR * cy);
   for (let ty = Math.floor(fy - rad); ty <= Math.floor(fy + rad); ty++){
     if (ty < 0 || ty >= n) continue;
     for (let tx = Math.floor(fx - rad); tx <= Math.floor(fx + rad); tx++){
       const img = getTile(z, ((tx % n) + n) % n, ty);
-      if (img.complete && img.naturalWidth) tctx.drawImage(img, (tx - fx) * tileM, (ty - fy) * tileM, tileM * 1.004, tileM * 1.004);
+      if (img) tctx.drawImage(img, (tx - fx) * tileM, (ty - fy) * tileM, tileM * 1.004, tileM * 1.004);
     }
   }
 }
@@ -1165,18 +1240,19 @@ function drawRoute(){
   if (TR && G.hasFix){ p0 = pointAt(G.sDisp); lat = TR.lat0 + p0[1] / TR.KY; lon = TR.lon0 + p0[0] / TR.KX; }
   else if (G.lastRaw){ lat = G.lastRaw.lat; lon = G.lastRaw.lon; th = 0; }
   else { tctx.setTransform(1, 0, 0, 1, 0, 0); tctx.clearRect(0, 0, tl.width, tl.height); return; }
-  const mpp = lerp(0.5, 1.7, clamp(G.vDisp / 30, 0, 1)), sc = 1 / mpp, cx = W / 2, cy = H * 0.87, sT = Math.sin(th), cT = Math.cos(th);
+  const mpp = lerp(0.6, 2.1, clamp(G.vDisp / 30, 0, 1)), sc = 1 / mpp, cx = W / 2, cy = H * 0.87, sT = Math.sin(th), cT = Math.cos(th);
+  setNeedle(nu ? 0 : Math.atan2(-cT, sT) * 180 / Math.PI);
   drawTiles(lat, lon, th, sc, cx, cy, nu);
   if (p0){
     const tx = (x, y) => { const dx = x - p0[0], dy = y - p0[1]; return nu ? [cx + dx * sc, cy - dy * sc] : [cx + (dx * sT - dy * cT) * sc, cy - (dx * cT + dy * sT) * sc]; };
-    const N = TR.N, i0 = Math.floor(G.sDisp / TR.ds), end = Math.min(N - 1, i0 + Math.ceil(1800 / TR.ds)), back = Math.ceil(150 / TR.ds);
+    const N = TR.N, i0 = Math.floor(G.sDisp / TR.ds), end = Math.min(N - 1, i0 + Math.ceil(3200 / TR.ds)), back = Math.ceil(150 / TR.ds);
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     ctx.beginPath(); for (let k = Math.max(0, i0 - back); k <= i0; k++){ const q = tx(TR.X[k], TR.Y[k]); if (k === Math.max(0, i0 - back)) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]); }
-    ctx.lineTo(cx, cy); ctx.strokeStyle = '#9fb0c3'; ctx.lineWidth = 8; ctx.stroke();
+    ctx.lineTo(cx, cy); ctx.strokeStyle = '#a5a43f'; ctx.lineWidth = 11; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, cy); for (let k = i0 + 1; k <= end; k++){ const q = tx(TR.X[k], TR.Y[k]); ctx.lineTo(q[0], q[1]); }
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 17; ctx.stroke(); ctx.strokeStyle = '#2d7ff9'; ctx.lineWidth = 11; ctx.stroke();
+    ctx.strokeStyle = '#7f8a3a'; ctx.lineWidth = 14.5; ctx.stroke(); ctx.strokeStyle = '#33ddff'; ctx.lineWidth = 11; ctx.stroke();
     ctx.fillStyle = '#fff';
-    for (let d = 35; d < 1700; d += 45){                             // chevrons blancs
+    for (let d = 35; d < (false ? 1700 : 0); d += 45){                             // chevrons blancs
       const k = Math.floor((G.sDisp + d) / TR.ds); if (k >= N - 1) break;
       const a = tx(TR.X[k], TR.Y[k]), b = tx(TR.X[k + 1], TR.Y[k + 1]), ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
       ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(ang); ctx.beginPath(); ctx.moveTo(5, 0); ctx.lineTo(-3.5, -4.5); ctx.lineTo(-1.5, 0); ctx.lineTo(-3.5, 4.5); ctx.closePath(); ctx.fill(); ctx.restore();
@@ -1185,9 +1261,7 @@ function drawRoute(){
     if (end === N - 1){ const q = tx(TR.X[N - 1], TR.Y[N - 1]);       // drapeau d'arrivee
       ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(q[0], q[1], 14, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(q[0] - 3, q[1] - 8, 2.5, 16); ctx.beginPath(); ctx.moveTo(q[0] - .5, q[1] - 8); ctx.lineTo(q[0] + 8, q[1] - 4); ctx.lineTo(q[0] - .5, q[1]); ctx.fill(); }
   }
-  ctx.save(); ctx.translate(cx, cy); ctx.rotate(nu ? (Math.PI / 2 - th) : 0);
-  ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.arc(2, 3, 17, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill();
-  ctx.fillStyle = '#2d7ff9'; ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(9, 9); ctx.lineTo(0, 4); ctx.lineTo(-9, 9); ctx.closePath(); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(nu ? (Math.PI / 2 - th) : 0); wazeCar(); ctx.restore();
 }
 
 /* --- demo sur route : une voiture virtuelle suit l'itineraire --- */
@@ -1260,6 +1334,10 @@ $('#btn-dest-clear').addEventListener('click', () => { G.route.dest = null; G.ro
 /* --- bascule circuit <-> route --- */
 function setLabels(){}                                                // (les libelles de la barre du bas sont maintenant integres aux textes)
 $('#wz-x').addEventListener('click', () => menu.classList.add('open'));
+$('.wz-eta').addEventListener('click', () => menu.classList.add('open'));
+$('.wz-grip').addEventListener('click', () => menu.classList.add('open'));
+$('#wz-comp').addEventListener('click', () => $('#sw-north').click());
+$('#wz-music').addEventListener('click', () => toast('Audio', 'Aucune appli audio liée'));
 $('#wz-alt').addEventListener('click', () => toast('Itinéraire alternatif', "Aucun : celui-ci est déjà le plus rapide"));
 function setSource(src){
   if (G.src === src) return;
@@ -1472,7 +1550,7 @@ function setMode(m){                                   // 'race' | 'waze' (circu
 $('#btn-mode').addEventListener('click', () => setMode(root.dataset.mode === 'waze' ? 'race' : 'waze'));
 document.querySelectorAll('#seg-mode button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.m)));
 function setSw(id, on){ $(id).classList.toggle('on', on); }
-function syncVol(){ $('#wz-vol').style.opacity = G.voice ? 1 : 0.45; }
+function syncVol(){ $('#wz-vol').style.opacity = G.voice ? 1 : 0.8; }
 $('#sw-voice').addEventListener('click', () => { G.voice = !G.voice; setSw('#sw-voice', G.voice); store.set('voice', G.voice); syncVol(); if (G.voice) speak('Voix activée'); });
 $('#wz-vol').addEventListener('click', () => { G.voice = !G.voice; setSw('#sw-voice', G.voice); store.set('voice', G.voice); syncVol(); if (G.voice) speak('Voix activée'); });
 $('#sw-pop').addEventListener('click', () => { G.popups = !G.popups; setSw('#sw-pop', G.popups); store.set('popups', G.popups); });
@@ -1519,7 +1597,7 @@ $('#btn-clear').addEventListener('click', () => { G.laps = []; G.bestAuto = null
   loadLaps(); resize(); requestAnimationFrame(frame);
 })();
 /* ================= MISE A JOUR AUTOMATIQUE ================= */
-const BUILD = '20261120164952';                 // remplace automatiquement a chaque publication (stamp.js)
+const BUILD = '20261120170116';                 // remplace automatiquement a chaque publication (stamp.js)
 const VERSION_URL = '../version.json';
 function doReload(u){ location.replace(u); }
 const canReload = () => root.dataset.state === 'idle';        // jamais pendant que tu roules
