@@ -58,9 +58,25 @@ html[data-mode=waze] #gps{background:#fff;box-shadow:0 1px 4px #0003}
 
 #nx.brake ~ #nx-more{display:none}
 #brake{position:absolute;z-index:6;left:10px;right:10px;top:calc(112px + env(safe-area-inset-top));padding:10px;border-radius:14px;background:var(--red);color:#fff;
-  font-size:32px;font-weight:900;letter-spacing:2px;text-align:center;display:none;animation:blink .35s infinite alternate;box-shadow:0 6px 20px #ff3b3066}
-#brake.on{display:block}
+  font-size:32px;font-weight:900;letter-spacing:2px;text-align:center;display:none;box-shadow:0 6px 20px #ff3b3066}
+#brake.on{display:block;animation:brakein .28s cubic-bezier(.2,1.4,.4,1),blink .35s .28s infinite alternate}
+@keyframes brakein{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
 @keyframes blink{from{opacity:1}to{opacity:.55}}
+/* pop-up : gris (gauche / droite), vert (gaz) */
+#pop{position:absolute;z-index:6;left:50%;top:33%;transform:translate(-50%,-50%);display:none;align-items:center;gap:10px;padding:10px 22px 10px 14px;border-radius:24px;color:#fff;
+  box-shadow:0 12px 34px #0007;pointer-events:none;white-space:nowrap;max-width:calc(100% - 16px)}
+#pop svg{width:50px;height:50px;flex:none}
+#pop div{font-size:35px;font-weight:900;letter-spacing:.3px;text-transform:uppercase;line-height:1;min-width:0}
+#pop small{display:block;font-size:15px;font-weight:700;letter-spacing:0;opacity:.85;text-transform:none;margin-top:5px;overflow:hidden;text-overflow:ellipsis}
+#pop.gray{background:rgba(74,80,89,.96)}
+#pop.green{background:#1fcf5c;text-shadow:0 2px 0 #0b7d34;padding:14px 38px 14px 26px}
+#pop.green div{font-size:66px}
+#pop.show{display:flex;animation:popin .4s cubic-bezier(.2,1.4,.4,1)}
+#pop.green.show{animation:popin .4s cubic-bezier(.2,1.4,.4,1),gaspulse .45s .4s 2 alternate}
+@keyframes popin{from{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),-50%) scale(.55)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes gaspulse{from{box-shadow:0 12px 34px #0007}to{box-shadow:0 0 0 8px #1fcf5c66,0 12px 40px #1fcf5caa}}
+html[data-mode=waze] #pop{display:none !important}
+#vig.green{box-shadow:inset 0 0 90px 14px rgba(31,207,92,.75)}
 #toast{position:absolute;z-index:6;left:50%;top:46%;transform:translate(-50%,-50%) scale(.8);padding:10px 18px;border-radius:16px;background:rgba(14,17,21,.9);
   color:#fff;font-size:22px;font-weight:800;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap}
 #toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -221,6 +237,7 @@ html[data-mode=waze] #wz-bar{display:block;position:absolute;z-index:5;left:0;ri
 
   <div id="brake">FREINE</div>
   <div id="toast"></div>
+  <div id="pop"></div>
 
   <div id="bottom">
     <div id="spd"><b id="spd-v">0</b><small>km/h</small></div>
@@ -253,6 +270,7 @@ html[data-mode=waze] #wz-bar{display:block;position:absolute;z-index:5;left:0;ri
     <h4>Affichage</h4>
     <div class="seg" id="seg-mode"><button data-m="race">Course</button><button data-m="waze">Waze</button></div>
     <div class="row">Voix (annonces des virages)<button class="sw" id="sw-voice" aria-label="Voix"></button></div>
+    <div class="row">Pop-ups gauche / droite / gaz (mode Course)<button class="sw" id="sw-pop" aria-label="Pop-ups"></button></div>
     <div class="row">Nord en haut (carte fixe)<button class="sw" id="sw-north" aria-label="Nord en haut"></button></div>
     <div class="row">Limitation de vitesse en km/h (0 = aucune)<input class="mini-in" id="in-limit" inputmode="numeric" maxlength="3" autocomplete="off"></div>
 
@@ -503,6 +521,31 @@ function upcoming(){
 }
 function brakeNeed(c, v){ return v > c.vt * 1.04 ? (v * v - c.vt * c.vt) / (2 * CFG.gBrake * 9.81) : 0; }
 
+/* ---------- pop-ups (mode Course) : gris = gauche/droite, rouge = freine, vert = gaz ---------- */
+G.popups = true; G.wasBraking = false; G.popUntil = 0;
+let popT = null;
+const GAS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l7-7 7 7M5 19l7-7 7 7"/></svg>';
+function popup(kind, text, sub, icon, dx, ms){
+  if (root.dataset.mode === 'waze' || !G.popups) return;
+  const p = $('#pop'); p.className = kind; p.style.setProperty('--dx', (dx || 0) + 'px');
+  p.innerHTML = (icon || '') + '<div>' + text + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
+  void p.offsetWidth; p.classList.add('show');
+  G.popUntil = performance.now() + (ms || 1600);
+  clearTimeout(popT); popT = setTimeout(() => p.classList.remove('show'), ms || 1600);
+}
+function flash(color, force){                                  // bord d'ecran qui clignote (rouge ou vert)
+  if (!force && (root.dataset.mode === 'waze' || !G.popups)) return;
+  const v = $('#vig'); v.className = ''; void v.offsetWidth; v.className = (color === 'green' ? 'green ' : '') + 'flash';
+}
+function gasCue(c){                                            // en fin de virage : GAZ
+  const key = G.lapNo + ':' + c.id + ':g';
+  if (G.say[key]) return;
+  const nxt = T.corners[(c.id + 1) % T.corners.length];
+  if (ahead(c.sExit, nxt.sEntry) < 60) return;                 // chicane : on attend la sortie du dernier virage
+  G.say[key] = 1;
+  popup('green', 'Gaz', null, GAS_ICON, 0, 1300); flash('green'); buzz(40); speak('Gaz');
+}
+
 function cornerLogic(){
   const s = G.sDisp, v = G.vDisp;
   for (const c of T.corners){
@@ -510,6 +553,8 @@ function cornerLogic(){
     if (inside && G.onTrack && v > 6){
       if (G.cs.id !== c.id){ G.cs = { id: c.id, vmin: v }; } else G.cs.vmin = Math.min(G.cs.vmin, v);
     }
+    const into = ahead(c.sEntry, s);
+    if (G.onTrack && v > 6 && into >= c.len - 14 && into < c.len + 24) gasCue(c);
   }
   if (G.cs.id != null){
     const c = T.corners[G.cs.id];
@@ -609,11 +654,18 @@ function updateHud(){
   $('#nx-dist').textContent = Math.max(0, Math.round(first.d / 5) * 5);
   $('#nx-fill').style.width = (clamp(1 - first.d / 300, 0, 1) * 100) + '%';
   nx.classList.toggle('brake', braking); $('#brake').classList.toggle('on', braking);
+  if (braking && !G.wasBraking){ flash('red'); buzz([50, 30, 50]); }
+  G.wasBraking = braking;
   const waze = root.dataset.mode === 'waze';
   if (waze && braking) $('#nx-desc').textContent = '⚠ Freine : ' + c.type + ' devant';
   setLanes(waze && first.d < 600 ? c : null);
   $('#nx-more').innerHTML = up.slice(1).map(u => `<div class="mini">${arrowSVG(u.c.dir, u.c.angle)}${u.c.name}<span>${Math.round(u.c.angle / 5) * 5}° · ${Math.round(u.d / 10) * 10} m</span></div>`).join('');
   // voix
+  const pk = G.lapNo + ':' + c.id + ':p';                      // pop-up gris : gauche / droite
+  if (!G.say[pk] && first.d < 350 && first.d > 60 && performance.now() > G.popUntil){
+    G.say[pk] = 1;
+    popup('gray', (c.dir === 'L' ? 'Gauche ' : 'Droite ') + Math.round(c.angle / 5) * 5 + '°', c.name + (c.type === 'épingle' ? ' · épingle' : ''), arrowSVG(c.dir, c.angle), c.dir === 'L' ? -90 : 90, 2300);
+  }
   const lab = (c.dir === 'L' ? 'gauche ' : 'droite ') + Math.round(c.angle / 5) * 5;
   if (first.d < 450 && first.d > 120) say(G.lapNo + ':' + c.id + ':a', (c.name.startsWith('Virage') ? '' : c.name + ', ') + lab + (c.type === 'épingle' ? ', épingle' : ''));
   if (braking) say(G.lapNo + ':' + c.id + ':b', 'Freine');
@@ -631,7 +683,7 @@ function syncWaze(kmh, gn){
   $('#wz-spd-v').textContent = live ? kmh : '0';
   const over = lim > 0 && live && kmh > lim;
   if (over && !G.over){                                   // on repasse au-dessus : petite animation + alerte
-    sp.classList.add('over'); pulse(sp, 'pop'); pulse($('#wz-limit'), 'shake'); pulse($('#vig'), 'flash');
+    sp.classList.add('over'); pulse(sp, 'pop'); pulse($('#wz-limit'), 'shake'); flash('red', true);
     buzz([70, 40, 70]); speak('Limitation de vitesse, ' + lim);
   }
   if (!over && G.over) sp.classList.remove('over');       // en dessous : retour au blanc
@@ -818,6 +870,7 @@ function setSw(id, on){ $(id).classList.toggle('on', on); }
 function syncVol(){ $('#wz-vol').style.opacity = G.voice ? 1 : 0.45; }
 $('#sw-voice').addEventListener('click', () => { G.voice = !G.voice; setSw('#sw-voice', G.voice); store.set('voice', G.voice); syncVol(); if (G.voice) speak('Voix activée'); });
 $('#wz-vol').addEventListener('click', () => { G.voice = !G.voice; setSw('#sw-voice', G.voice); store.set('voice', G.voice); syncVol(); if (G.voice) speak('Voix activée'); });
+$('#sw-pop').addEventListener('click', () => { G.popups = !G.popups; setSw('#sw-pop', G.popups); store.set('popups', G.popups); });
 $('#wz-report').addEventListener('click', () => toast('Signalé !', "Merci d'aider les autres Wazers"));
 $('#in-limit').addEventListener('change', () => { const v = parseInt($('#in-limit').value, 10); CFG.speedLimit = isFinite(v) && v >= 0 && v <= 300 ? v : 0; $('#in-limit').value = CFG.speedLimit; store.set('limit', CFG.speedLimit); });
 $('#sw-north').addEventListener('click', () => { G.northUp = !G.northUp; setSw('#sw-north', G.northUp); store.set('north', G.northUp); });
@@ -854,11 +907,12 @@ $('#btn-clear').addEventListener('click', () => { G.laps = []; G.bestAuto = null
   $('#note').textContent = 'Tracé : OpenStreetMap (© contributeurs). Les vitesses cibles et les points sont une estimation, pas un conseil de pilotage.';
   setMode(store.get('mode', 'race')); G.voice = store.get('voice', false); setSw('#sw-voice', G.voice); syncVol();
   CFG.speedLimit = store.get('limit', CFG.speedLimit); $('#in-limit').value = CFG.speedLimit;
+  G.popups = store.get('popups', true); setSw('#sw-pop', G.popups);
   G.northUp = store.get('north', false); setSw('#sw-north', G.northUp); setFactor(1);
   loadLaps(); resize(); requestAnimationFrame(frame);
 })();
 /* ================= MISE A JOUR AUTOMATIQUE ================= */
-const BUILD = '20261120162939';                 // remplace automatiquement a chaque publication (stamp.js)
+const BUILD = '20261120163312';                 // remplace automatiquement a chaque publication (stamp.js)
 const VERSION_URL = '../version.json';
 function doReload(u){ location.replace(u); }
 const canReload = () => root.dataset.state === 'idle';        // jamais pendant que tu roules
