@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vroom">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#ececec">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <title>Vroom</title>
 <style>
 :root{--ink:#000;--mut:#545454;--mut2:#6b6b6b;--line:#e2e2e2;--gray:#f3f3f3;--blue:#276ef1;--green:#05944f}
@@ -14,24 +20,44 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
   font-family:"Uber Move","Inter",-apple-system,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;touch-action:manipulation}
 #app{position:fixed;inset:0}
 #map{position:absolute;inset:0;width:100%;height:100%}
+#lmap{position:absolute;inset:0;z-index:0;visibility:hidden;background:#ececec}
+#attr{position:absolute;top:calc(2px + env(safe-area-inset-top));right:8px;z-index:6;font-size:8px;color:#555;opacity:.55;display:none;pointer-events:none}
 
 /* haut : bouton retour + carte d'itineraire */
-.fab{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;width:44px;height:44px;border-radius:50%;
+.fab{position:absolute;z-index:10;top:calc(14px + env(safe-area-inset-top));left:14px;width:44px;height:44px;border-radius:50%;
   background:#fff;border:0;box-shadow:0 1px 6px #00000033;display:grid;place-items:center;padding:0}
+.fab:active{background:#eee}
 .fab svg{width:22px;height:22px}
-.route-card{position:absolute;top:calc(14px + env(safe-area-inset-top));left:68px;right:14px;background:#fff;border-radius:12px;
+.route-card{position:absolute;z-index:10;top:calc(14px + env(safe-area-inset-top));left:68px;right:14px;background:#fff;border-radius:12px;
   box-shadow:0 1px 6px #00000033;padding:8px 14px 8px 36px;font-size:15px;line-height:1.4;font-weight:500}
 .route-card div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .route-card .a{color:var(--mut2);font-weight:400}
 .route-card::before{content:"";position:absolute;left:15px;top:14px;width:8px;height:8px;border-radius:50%;background:#000}
 .route-card::after{content:"";position:absolute;left:15px;top:34px;width:8px;height:8px;background:#000}
 .route-card i{position:absolute;left:18.5px;top:23px;width:1px;height:11px;background:#bbb}
-#app:not([data-state=choose]):not([data-state=searching]) .only-choose{display:none}
+#app:not([data-state=choose]):not([data-state=searching]) .only-choose,
+#app:not([data-state=choose]):not([data-state=searching]) #lmap .leaflet-overlay-pane{display:none}
 .only-search{display:none}
 [data-state=searching] .only-search{display:inline}
 
+/* marqueurs de la vraie carte */
+.me .dot{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;background:#276ef1;border:3px solid #fff;box-shadow:0 0 0 1px #0002}
+.me .pulse{position:absolute;left:-13px;top:-13px;width:26px;height:26px;border-radius:50%;background:#276ef1;opacity:.25;animation:pulse 2s ease-out infinite}
+@keyframes pulse{from{transform:scale(.6);opacity:.35}to{transform:scale(2.6);opacity:0}}
+.me .radar{display:none;position:absolute;left:-12px;top:-12px;width:24px;height:24px;border-radius:50%;background:rgba(39,110,241,.22);animation:radar 2.1s linear infinite}
+.me .r2{animation-delay:.7s}.me .r3{animation-delay:1.4s}
+@keyframes radar{from{transform:scale(.4);opacity:.3}to{transform:scale(14);opacity:0}}
+#app[data-state=searching] .me .radar{display:block}
+.dst .sq{position:absolute;left:-8px;top:-8px;width:16px;height:16px;background:#000}
+.dst .sq::after{content:"";position:absolute;left:5px;top:5px;width:6px;height:6px;background:#fff}
+.dst .bub{position:absolute;left:0;top:-38px;transform:translateX(-50%);background:#000;color:#fff;border-radius:6px;padding:3px 9px;
+  font-size:12px;font-weight:700;white-space:nowrap}
+.dst .bub::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:#000}
+#ocar{position:absolute;z-index:6;left:0;top:0;width:22px;height:44px;pointer-events:none;will-change:transform}
+#ocar svg{width:22px;height:44px;display:block;overflow:visible}
+
 /* feuille du bas */
-.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;
+.sheet{position:absolute;z-index:10;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;
   box-shadow:0 -2px 14px #00000026;padding:0 16px calc(12px + env(safe-area-inset-bottom))}
 .pane{display:none;animation:up .3s cubic-bezier(.2,.8,.2,1)}
 @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -45,16 +71,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
   border:2px solid transparent;border-radius:12px;margin-bottom:2px}
 .opt.sel{background:var(--gray);border-color:#000}
 .opt svg.ic{width:74px;height:44px}
-.opt .nm{font-size:17px;font-weight:600;display:flex;align-items:center;gap:7px;letter-spacing:-.1px}
+.opt > div:nth-child(2){min-width:0}
+.opt .nm{font-size:17px;font-weight:600;display:flex;align-items:center;gap:7px;letter-spacing:-.1px;white-space:nowrap}
 .opt .nm .seats{display:inline-flex;align-items:center;gap:2px;font-size:13px;font-weight:500;color:var(--mut)}
 .opt .nm .seats svg{width:13px;height:13px;fill:#000}
 .opt .eta{font-size:13.5px;font-weight:500;margin-top:2px}
 .opt .desc{font-size:13px;color:var(--mut2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.opt > div:nth-child(2){min-width:0}
-.opt .nm{white-space:nowrap}
 .price{font-weight:600;font-size:17px;letter-spacing:-.2px}
 .bolt{width:14px;height:14px}
-.tag{font-size:11px;font-weight:700;background:#000;color:#fff;border-radius:4px;padding:2px 5px;letter-spacing:.2px}
 @keyframes nudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .opt.nudge{animation:nudge .35s}
 .pay{display:flex;align-items:center;gap:12px;padding:12px 4px 12px;border-top:1px solid var(--line);margin-top:4px;font-size:15px;font-weight:500}
@@ -131,7 +155,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 
 <div id="app" data-state="choose">
 
-  <!-- CARTE (decor) -->
+  <!-- CARTE DE SECOURS (stylisee) : visible tant que la vraie carte n'est pas chargee -->
   <svg id="map" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">
     <rect width="390" height="844" fill="#ececec"/>
     <path d="M-20 420 L140 330 L260 400 L420 300 L420 380 L270 470 L150 410 L-20 500Z" fill="#c5dff0"/>
@@ -148,13 +172,6 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
     <g stroke="#fff" stroke-linecap="round" fill="none" stroke-width="9">
       <path d="M-20 210H420M-20 410H420M-20 610H420M137 -20V860M262 -20V860M20 -20V860"/>
     </g>
-    <g font-size="9" fill="#8d8d8d" font-family="sans-serif">
-      <text x="206" y="580" transform="rotate(90 206 580)">Rue de la Gare</text>
-      <text x="14" y="296">Av. du Général Leclerc</text>
-      <text x="236" y="696">Bd. Nationale</text>
-    </g>
-
-    <!-- radar de recherche -->
     <g class="only-search">
       <circle cx="195" cy="300" r="8" fill="#276ef1" fill-opacity=".2">
         <animate attributeName="r" from="8" to="170" dur="2.1s" begin="0s" repeatCount="indefinite"/>
@@ -164,13 +181,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
         <animate attributeName="r" from="8" to="170" dur="2.1s" begin="0.7s" repeatCount="indefinite"/>
         <animate attributeName="fill-opacity" from=".28" to="0" dur="2.1s" begin="0.7s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="195" cy="300" r="8" fill="#276ef1" fill-opacity=".2">
-        <animate attributeName="r" from="8" to="170" dur="2.1s" begin="1.4s" repeatCount="indefinite"/>
-        <animate attributeName="fill-opacity" from=".28" to="0" dur="2.1s" begin="1.4s" repeatCount="indefinite"/>
-      </circle>
     </g>
-
-    <!-- itineraire -->
     <g class="only-choose">
       <polyline points="195,300 195,120 330,120" fill="none" stroke="#000" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
       <rect x="322" y="112" width="16" height="16" fill="#000"/>
@@ -181,15 +192,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
         <text id="tripmin" x="0" y="-3" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="sans-serif"></text>
       </g>
     </g>
-
-    <!-- position -->
     <circle cx="195" cy="300" r="10" fill="#276ef1" opacity=".25">
       <animate attributeName="r" values="10;26;10" dur="2s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values=".3;0;.3" dur="2s" repeatCount="indefinite"/>
     </circle>
     <circle cx="195" cy="300" r="8" fill="#276ef1" stroke="#fff" stroke-width="3"/>
-
-    <!-- voiture -->
     <g id="car" style="display:none" transform="translate(470 300) rotate(-90)">
       <rect x="-10" y="-20" width="20" height="40" rx="7" fill="#0003" transform="translate(2 3)"/>
       <rect x="-9" y="-19" width="18" height="38" rx="7" fill="#111"/>
@@ -199,7 +206,20 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
     </g>
   </svg>
 
-  <!-- bouton retour : appui long = remise a zero pour refaire une prise -->
+  <!-- VRAIE CARTE (Leaflet + fond CARTO/OpenStreetMap), centree sur le GPS -->
+  <div id="lmap"></div>
+  <div id="attr">© OpenStreetMap · © CARTO</div>
+  <div id="ocar" style="display:none">
+    <svg viewBox="-11 -22 22 44">
+      <rect x="-11" y="-20" width="22" height="42" rx="8" fill="#0003" transform="translate(2 3)"/>
+      <rect x="-10" y="-21" width="20" height="42" rx="8" fill="#111"/>
+      <rect x="-7" y="-10" width="14" height="8" rx="2.5" fill="#6b7280"/>
+      <rect x="-6.5" y="8" width="13" height="5" rx="2" fill="#4b5563"/>
+      <rect x="-11" y="17" width="22" height="3.5" rx="1" fill="#000"/>
+    </svg>
+  </div>
+
+  <!-- fleche retour : revient a l'ecran de depart -->
   <button class="fab" id="back" aria-label="Retour">
     <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
   </button>
@@ -286,12 +306,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 /* ===== A MODIFIER ICI ===== */
 const CFG = {
   dest: 'Le circuit',            // destination affichee
-  tripMin: '18 min',             // duree de trajet affichee sur la carte
+  tripMin: '18 min',             // duree de trajet affichee (remplacee par la vraie duree calculee quand le reseau marche)
   price: '189,00 €',             // prix de l'Ultra Fast
   driver: 'Emylien',
   rating: '5,00',
   car: 'Porsche 718 GT4 RS',
-  plate: 'GT-4RS-72',
+  plate: 'GT-718-RS',
   searchMs: 1800,                // duree de "Connexion a un chauffeur" (cale-la sur l'arrivee de la vraie voiture)
   driveMs: 1500                  // duree de l'arrivee de la voiture sur la carte
 };
@@ -314,7 +334,8 @@ function fillTimes(){
 fillTimes();
 
 const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} };
-const goFS = () => { try { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || (()=>{})).call(el); } catch(e){} };
+const standalone = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone;
+const goFS = () => { if (standalone) return; try { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || (()=>{})).call(el); } catch(e){} };
 
 let actx = null;
 function ding(){
@@ -329,6 +350,109 @@ function ding(){
     });
   } catch(e){}
 }
+
+/* ================= VRAIE CARTE ================= */
+let useReal = false, map = null, meMarker = null, routeLine = null, dstMarker = null;
+let curPos = null, routeBounds = null, routeFor = null;
+
+function haversine(a, b){
+  const R = 6371000, r = x => x * Math.PI / 180;
+  const dLa = r(b[0]-a[0]), dLo = r(b[1]-a[1]);
+  const h = Math.sin(dLa/2)**2 + Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dLo/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function ensureMap(){
+  if (map) return true;
+  if (typeof L === 'undefined') return false;
+  map = L.map('lmap', {zoomControl:false, attributionControl:false, dragging:false, touchZoom:false, scrollWheelZoom:false,
+    doubleClickZoom:false, boxZoom:false, keyboard:false, tap:false, zoomSnap:0.25, fadeAnimation:true});
+  const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {subdomains:'abcd', maxZoom:19});
+  tiles.addTo(map);
+  tiles.once('load', () => {                       // on bascule sur la vraie carte quand les tuiles sont la
+    $('#lmap').style.visibility = 'visible'; $('#map').style.display = 'none'; $('#attr').style.display = 'block';
+    useReal = true; syncCar();
+  });
+  meMarker = L.marker([0,0], {interactive:false, keyboard:false, icon: L.divIcon({className:'me', iconSize:[0,0],
+    html:'<div class="radar"></div><div class="radar r2"></div><div class="radar r3"></div><div class="pulse"></div><div class="dot"></div>'})});
+  map.setView([47.99, 0.2], 15, {animate:false});  // vue initiale en attendant le GPS
+  return true;
+}
+
+function onPosition(la, lo){
+  const first = !curPos;
+  const moved = curPos ? haversine(curPos, [la, lo]) : 1e9;
+  curPos = [la, lo];
+  if (!ensureMap()) return;
+  meMarker.setLatLng(curPos); if (!map.hasLayer(meMarker)) meMarker.addTo(map);
+  if (moved > 40) computeRoute();
+  applyView(!first && !(moved > 400));
+}
+
+/* itineraire reel (OSRM) vers un point fictif a ~2 km, sinon trace de secours */
+async function computeRoute(){
+  const [la, lo] = curPos;
+  const key = la.toFixed(3) + ',' + lo.toFixed(3);
+  if (routeFor === key) return;
+  routeFor = key;
+  const dest = [la + 0.011, lo + 0.016];
+  let coords = null, mins = null;
+  try {
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${lo},${la};${dest[1]},${dest[0]}?overview=full&geometries=geojson`);
+    const j = await r.json();
+    if (j.routes && j.routes[0]) {
+      coords = j.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      mins = Math.max(2, Math.round(j.routes[0].duration / 60));
+    }
+  } catch(e){}
+  if (!coords) coords = [curPos, [la + 0.010, lo], [la + 0.010, lo + 0.014]];       // secours : trace en L
+  if (routeLine) map.removeLayer(routeLine);
+  if (dstMarker) map.removeLayer(dstMarker);
+  routeLine = L.polyline(coords, {color:'#000', weight:5, lineJoin:'round', lineCap:'round', interactive:false}).addTo(map);
+  const end = coords[coords.length - 1];
+  const label = mins ? mins + ' min' : CFG.tripMin;
+  $('#tripmin').textContent = label;
+  dstMarker = L.marker(end, {interactive:false, keyboard:false, icon: L.divIcon({className:'dst only-choose', iconSize:[0,0],
+    html:`<span class="bub">${label}</span><span class="sq"></span>`})}).addTo(map);
+  routeBounds = routeLine.getBounds().extend(curPos);
+  applyView(false);
+}
+
+/* cadrage : itineraire complet au choix, zoom serre sur toi ensuite (au-dessus de la feuille du bas) */
+function applyView(animate = true){
+  if (!map || !curPos) return;
+  const s = app.dataset.state, sh = $('.sheet').offsetHeight;
+  map.invalidateSize();
+  if (s === 'choose' && routeBounds) {
+    map.fitBounds(routeBounds, {paddingTopLeft:[36, 110], paddingBottomRight:[36, sh + 50], animate, maxZoom:16});
+  } else {
+    const z = s === 'choose' ? 15 : 17;
+    const c = map.unproject(map.project(curPos, z).add([0, sh / 2]), z);
+    map.setView(c, z, {animate});
+  }
+}
+
+/* ================= VOITURE ================= */
+function carPlace(e){                    // e : 0 (loin) -> 1 (arretee devant toi)
+  if (!useReal) {
+    const x = 470 + (236 - 470) * e;
+    $('#car').setAttribute('transform', `translate(${x} 300) rotate(-90)`);
+    return;
+  }
+  const d = document.querySelector('.me .dot').getBoundingClientRect();
+  const cx = d.left + d.width / 2, cy = d.top + d.height / 2;
+  const start = innerWidth - cx + 50, end = 46;
+  const off = start + (end - start) * e;
+  $('#ocar').style.transform = `translate(${cx + off}px,${cy}px) translate(-50%,-50%) rotate(-90deg)`;
+}
+function syncCar(){
+  const s = app.dataset.state, on = (s === 'found' || s === 'arrived');
+  $('#car').style.display  = (!useReal && on) ? '' : 'none';
+  $('#ocar').style.display = ( useReal && on) ? '' : 'none';
+}
+
+/* ================= DEROULE ================= */
+let runId = 0, searchTimer = null;
 
 /* BOUTON 1 : selectionner Ultra Fast (les autres lignes sont du decor) */
 ultra.addEventListener('click', () => {
@@ -347,57 +471,56 @@ cta.addEventListener('click', () => {
     ultra.classList.remove('nudge'); void ultra.offsetWidth; ultra.classList.add('nudge'); buzz(30); return;
   }
   buzz([30, 50, 30]);
+  const my = ++runId;
   app.dataset.state = 'searching';
-  setTimeout(found, CFG.searchMs);
+  searchTimer = setTimeout(() => found(my), CFG.searchMs);
 });
 
-function found(){
-  const car = $('#car');
-  car.setAttribute('transform', 'translate(470 300) rotate(-90)');
+function found(my){
+  if (my !== runId) return;
+  carPlace(0);
   app.dataset.state = 'found';
   $('#status').textContent = 'Retrouvez votre chauffeur';
   ding(); buzz(60);
-  const x0 = 470, x1 = 236, t0 = performance.now();
+  const t0 = performance.now();
   (function step(t){
+    if (my !== runId) return;                        // annule si on a appuye sur retour
     const p = Math.min(1, (t - t0) / CFG.driveMs);
-    const e = 1 - Math.pow(1 - p, 4);                // arrive vite, freine fort
-    car.setAttribute('transform', `translate(${x0 + (x1 - x0) * e} 300) rotate(-90)`);
-    if (p < 1) requestAnimationFrame(step); else arrived();
+    carPlace(1 - Math.pow(1 - p, 4));                // arrive vite, freine fort
+    if (p < 1) requestAnimationFrame(step); else arrived(my);
   })(t0);
 }
-function arrived(){
+function arrived(my){
+  if (my !== runId) return;
   app.dataset.state = 'arrived';
   $('#status').textContent = 'Votre chauffeur est arrivé';
   ding(); buzz([200, 80, 200]);
 }
 
-/* appui long sur la fleche retour = remise a zero (pour refaire une prise) */
-let lp;
-const back = $('#back');
-const reset = () => {
+/* FLECHE RETOUR : revient a l'ecran de depart, avant l'animation */
+function resetAll(){
+  runId++; clearTimeout(searchTimer);
   app.dataset.state = 'choose';
   rows.forEach(r => r.classList.remove('sel')); $('#opt-eco').classList.add('sel');
   cta.textContent = 'Choisir Eco';
-  $('#car').style.display = 'none'; fillTimes(); buzz(20);
-};
-back.addEventListener('touchstart', () => { lp = setTimeout(reset, 600); }, {passive:true});
-['touchend','touchcancel'].forEach(ev => back.addEventListener(ev, () => clearTimeout(lp)));
-back.addEventListener('mousedown', () => { lp = setTimeout(reset, 600); });
-['mouseup','mouseleave'].forEach(ev => back.addEventListener(ev, () => clearTimeout(lp)));
+  fillTimes(); buzz(20);
+  locate();                                          // reactualise la position
+}
+$('#back').addEventListener('click', resetAll);
 
-/* la voiture n'est visible que pendant found/arrived */
 new MutationObserver(() => {
-  const s = app.dataset.state;
-  $('#car').style.display = (s === 'found' || s === 'arrived') ? '' : 'none';
+  syncCar();
+  if (map) applyView(true);
 }).observe(app, {attributes:true, attributeFilter:['data-state']});
 
-/* ===== VRAIE POSITION GPS (adresse de prise en charge) ===== */
+/* ================= GPS + ADRESSE ================= */
 function setPickup(txt){ $('#pickup').textContent = txt; }
-async function locate(){
-  try { const c = localStorage.getItem('vroom_pickup'); if (c) setPickup(c); } catch(e){}   // derniere adresse connue (prises suivantes / hors-ligne)
+function locate(){
+  try { const c = localStorage.getItem('vroom_pickup'); if (c) setPickup(c); } catch(e){}   // derniere adresse connue
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(async pos => {
     const {latitude: la, longitude: lo} = pos.coords;
+    onPosition(la, lo);
     try {
       const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=fr&lat=${la}&lon=${lo}`);
       const a = (await r.json()).address || {};
@@ -406,12 +529,13 @@ async function locate(){
       const txt = [street, town].filter(Boolean).join(', ') || (la.toFixed(5) + ', ' + lo.toFixed(5));
       setPickup(txt);
       try { localStorage.setItem('vroom_pickup', txt); } catch(e){}
-    } catch(e) { setPickup(la.toFixed(5) + ', ' + lo.toFixed(5)); }   // pas de reseau : on affiche les coordonnees
-  }, () => {}, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
+    } catch(e) { setPickup(la.toFixed(5) + ', ' + lo.toFixed(5)); }
+  }, () => {}, {enableHighAccuracy: true, timeout: 12000, maximumAge: 30000});
 }
 locate();
 
 document.addEventListener('contextmenu', e => e.preventDefault());
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
