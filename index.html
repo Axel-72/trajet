@@ -169,8 +169,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 .stat b{display:block;font-size:16px;letter-spacing:-.2px}
 .stat span{font-size:12px;color:var(--mut2)}
 .tip-t{font-size:17px;font-weight:600;margin:16px 0 8px}
-.tips{display:flex;gap:8px;flex-wrap:wrap}
-.tipc{border:0;background:var(--gray);border-radius:22px;padding:12px 16px;font-size:15px;font-weight:600;font-family:inherit;color:#000}
+.tips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tipc{border:0;background:var(--gray);border-radius:22px;padding:12px 10px;font-size:15px;font-weight:600;font-family:inherit;color:#000;text-align:center}
 .tipc.sel{background:#000;color:#fff}
 .tip-h{color:var(--mut2);font-size:14px;margin:8px 2px 14px;min-height:18px}
 .pane-thanks{text-align:center;padding-top:56px}
@@ -383,11 +383,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
     <textarea id="review" rows="1" maxlength="140"></textarea>
     <div class="stats" id="stats"></div>
     <div class="tip-t">Ajouter un pourboire</div>
-    <div class="tips">
-      <button class="tipc" data-tip="none">Pas de pourboire</button>
-      <button class="tipc" data-tip="ten">10 %</button>
-      <button class="tipc" data-tip="meal">Mon repas</button>
-    </div>
+    <div class="tips" id="tips"></div>
     <div class="tip-h" id="tiph"></div>
     <button class="cta" id="sub">Valider</button>
   </div>
@@ -424,7 +420,12 @@ const CFG = {
   hintArrived: 'Vous avez 0 min pour monter.',
   notifTitle: 'Votre chauffeur est arrivé',
   notifBody: '',                 // vide = "chauffeur · voiture · plaque"
-  priceNum: 189,                 // pour calculer les 10 % de pourboire
+  tips: [                        // pourboires proposes : [id, texte du bouton, texte affiche ensuite]
+    ['meal',  'Mon repas',            'Pourboire : mon repas'],
+    ['tyres', 'Un train de pneus',    'Pourboire : un train de pneus'],
+    ['fuel',  'Du carburant',         'Pourboire : un plein de carburant'],
+    ['pads',  'Des plaquettes',       'Pourboire : un jeu de plaquettes']
+  ],
   endStats: [['Durée', '0 min 52 s'], ['Vitesse max', '273 km/h'], ['Régime max', '9000 rpm']],   // ecran de fin
   review: '',                    // faux avis pre-rempli sur l'ecran de fin (laisse '' pour le taper en direct)
   reviewHint: 'Laissez un avis sur Emylien…',   // texte grise du champ d'avis
@@ -474,6 +475,7 @@ $('#ini').textContent = CFG.driver[0]; $('#ini2').textContent = CFG.driver[0];
 $('#chips').innerHTML = CFG.chips.map(c => `<span class="chip">${c}</span>`).join('');
 $('#stats').innerHTML = CFG.endStats.map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
 $('#review').placeholder = CFG.reviewHint; $('#review').value = CFG.review;
+$('#tips').innerHTML = CFG.tips.map(t => `<button class="tipc" data-tip="${t[0]}">${t[1]}</button>`).join('');
 $('#tripmin').textContent = CFG.tripMin;
 const dayNo = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
 $('#quote').textContent = CFG.quote || QUOTES[dayNo % QUOTES.length];
@@ -747,12 +749,7 @@ let rating = 0, tip = null;
 const LBL = ['', 'Décevant', 'Moyen', 'Bien', 'Très bien', 'Excellent !'];
 const stars = [...document.querySelectorAll('.stars button')], tipBtns = [...document.querySelectorAll('.tipc')];
 const money = x => x.toFixed(2).replace('.', ',') + ' €';
-function tipText(){
-  if (tip === 'none') return 'Aucun pourboire';
-  if (tip === 'ten')  return '10 % · ' + money(CFG.priceNum * 0.1);
-  if (tip === 'meal') return 'Pourboire : mon repas';
-  return '';
-}
+function tipText(){ const t = CFG.tips.find(x => x[0] === tip); return t ? t[2] : ''; }
 stars.forEach(b => b.addEventListener('click', () => {
   rating = +b.dataset.n;
   stars.forEach(s => s.classList.toggle('on', +s.dataset.n <= rating));
