@@ -728,7 +728,31 @@ $('#btn-clear').addEventListener('click', () => { G.laps = []; G.bestAuto = null
   G.northUp = store.get('north', false); setSw('#sw-north', G.northUp); setFactor(1);
   loadLaps(); resize(); requestAnimationFrame(frame);
 })();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
+/* ================= MISE A JOUR AUTOMATIQUE ================= */
+const BUILD = '20261120161136';                 // remplace automatiquement a chaque publication (stamp.js)
+const VERSION_URL = '../version.json';
+function doReload(u){ location.replace(u); }
+const canReload = () => root.dataset.state === 'idle';        // jamais pendant que tu roules
+let updBusy = false;
+async function checkUpdate(){
+  if (updBusy) return; updBusy = true;
+  try {
+    const r = await fetch(VERSION_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    const j = await r.json();
+    if (j && j.v && j.v !== BUILD && canReload()) {
+      let tried = null; try { tried = sessionStorage.getItem('upd'); } catch(e){}
+      if (tried === j.v) return;                                   // deja tente : pas de boucle
+      try { sessionStorage.setItem('upd', j.v); } catch(e){}
+      if ('caches' in window) { try { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); } catch(e){} }
+      try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) await reg.update(); } catch(e){}
+      doReload(location.pathname + '?u=' + j.v + location.hash);
+    }
+  } catch(e){} finally { updBusy = false; }
+}
+checkUpdate();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+window.addEventListener('pageshow', e => { if (e.persisted) checkUpdate(); });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js', { scope: '../', updateViaCache: 'none' }).catch(() => {});
 </script>
 </body>
 </html>
