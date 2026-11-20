@@ -56,7 +56,7 @@ html[data-mode=waze] #mm{display:none}
 #gps.ok{color:var(--grn)} #gps.warn{color:var(--amb)} #gps.bad{color:var(--red)}
 html[data-mode=waze] #gps{background:#fff;box-shadow:0 1px 4px #0003}
 
-#nx.brake + #nx-more{display:none}
+#nx.brake ~ #nx-more{display:none}
 #brake{position:absolute;z-index:6;left:10px;right:10px;top:calc(112px + env(safe-area-inset-top));padding:10px;border-radius:14px;background:var(--red);color:#fff;
   font-size:32px;font-weight:900;letter-spacing:2px;text-align:center;display:none;animation:blink .35s infinite alternate;box-shadow:0 6px 20px #ff3b3066}
 #brake.on{display:block}
@@ -124,6 +124,68 @@ html:not([data-state=idle]) #start{display:none}
 #start .msg{margin-top:14px;font-size:13px;color:#ffb020;min-height:18px}
 #start .tiny{margin-top:18px;font-size:12px;color:#6c7681;line-height:1.4}
 
+/* ================= WAZE : interface realiste ================= */
+#btn-mode{display:none}                          /* le bouton de bascule est cache : on change d'affichage depuis le menu ⋯ */
+.wz{display:none}
+html[data-mode=waze] #bottom{display:none}
+html[data-mode=waze] #brake{display:none !important}
+html[data-mode=waze] #gps.ok{display:none}
+html[data-mode=waze] #cv{transform:perspective(520px) rotateX(30deg) scale(1.45);transform-origin:50% 78%}
+/* bandeau de manoeuvre */
+html[data-mode=waze] #nx{display:grid;grid-template-columns:62px 1fr;grid-template-areas:"ic dist" "ic name" "ic desc";column-gap:12px;row-gap:0;
+  padding:10px 14px 12px 12px;background:#27313d;border:0;border-radius:16px;box-shadow:0 6px 18px #0005;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-mode=waze] #nx > div:nth-child(2){display:contents}
+html[data-mode=waze] #nx-ic{grid-area:ic;align-self:center;width:60px;height:60px}
+html[data-mode=waze] .nx-d{grid-area:dist;text-align:left;display:flex;align-items:baseline;gap:4px}
+html[data-mode=waze] .nx-d b{font-size:40px;line-height:1.05}
+html[data-mode=waze] .nx-d small{font-size:18px;color:#fff;font-weight:700;margin:0}
+html[data-mode=waze] #nx-tgt{display:none}
+html[data-mode=waze] #nx-name{grid-area:name;font-size:19px;font-weight:600}
+html[data-mode=waze] #nx-desc{grid-area:desc;font-size:13px}
+html[data-mode=waze] .nx-bar{display:none}
+html[data-mode=waze] #nx.brake{background:#c5271f}
+html[data-mode=waze] #nx.brake #nx-desc{color:#fff;font-weight:700}
+html[data-mode=waze] #nx-more .mini:nth-child(n+2){display:none}
+html[data-mode=waze] .mini{background:#27313d;border-radius:0 0 14px 14px;margin:-6px 0 0 18px;padding:9px 14px 6px;font-size:13px;box-shadow:0 4px 10px #0004}
+/* guidage de voies */
+#lanes{display:none}
+html[data-mode=waze] #lanes.on{display:flex;margin-top:6px;background:#27313d;border-radius:14px;padding:6px 8px;gap:4px;width:fit-content;box-shadow:0 4px 12px #0004}
+.lane{width:54px;height:46px;display:grid;place-items:center;border-radius:10px;color:#6f7c8a}
+.lane.act{color:#fff;background:#3b4959}
+.lane svg{width:34px;height:34px}
+/* limitation + vitesse */
+html[data-mode=waze] #wz-limit{position:absolute;z-index:6;left:12px;bottom:calc(122px + env(safe-area-inset-bottom));width:68px;height:68px;border-radius:50%;
+  background:#fff;border:7px solid #e3262e;display:grid;place-items:center;box-shadow:0 3px 10px #0004}
+#wz-limit b{font-size:26px;font-weight:800;color:#111;letter-spacing:-1px}
+html[data-mode=waze] #wz-speed{position:absolute;z-index:6;left:88px;bottom:calc(122px + env(safe-area-inset-bottom));width:68px;height:68px;border-radius:50%;
+  background:#fff;border:3px solid #dde2e8;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 10px #0004;transition:background .2s}
+#wz-speed b{font-size:29px;font-weight:800;line-height:1;color:#111}
+#wz-speed small{font-size:10px;font-weight:700;color:#6b7580;margin-top:1px}
+html[data-mode=waze] #wz-speed.over{background:#e3262e;border-color:#fff}
+html[data-mode=waze] #wz-speed.over b,html[data-mode=waze] #wz-speed.over small{color:#fff}
+#wz-speed.pop{animation:pop .65s}
+#wz-limit.shake{animation:shake .65s}
+@keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.94)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-7px)}35%{transform:translateX(7px)}55%{transform:translateX(-5px)}75%{transform:translateX(4px)}}
+#vig{position:fixed;inset:0;z-index:7;pointer-events:none;box-shadow:inset 0 0 90px 14px rgba(227,38,46,.8);opacity:0}
+#vig.flash{animation:vig .95s}
+@keyframes vig{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+/* boutons a droite */
+html[data-mode=waze] #wz-side{position:absolute;z-index:6;right:12px;bottom:calc(124px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px}
+#wz-side button{width:50px;height:50px;border-radius:50%;border:0;background:#fff;box-shadow:0 3px 10px #0004;display:grid;place-items:center;padding:0}
+#wz-side svg{width:26px;height:26px}
+/* barre du bas facon ETA */
+html[data-mode=waze] #wz-bar{display:block;position:absolute;z-index:5;left:0;right:0;bottom:0;background:#fff;color:#111;border-radius:20px 20px 0 0;
+  box-shadow:0 -4px 18px #0003;padding:8px 14px calc(10px + env(safe-area-inset-bottom))}
+#wz-bar::before{content:"";display:block;width:38px;height:4px;border-radius:2px;background:#d3d8de;margin:0 auto 8px}
+.wz-stats{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center}
+.wz-stats b{display:block;font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.1}
+.wz-stats span{font-size:12px;color:#6b7580}
+#wz-delta.pos{color:#e3262e} #wz-delta.neg{color:#1e9e50}
+#wz-foot{text-align:center;font-size:12px;color:#6b7580;margin-top:6px}
+#wz-foot b{color:#111;font-weight:700}
+.mini-in{width:76px;border:0;background:#eef0f3;border-radius:10px;padding:8px 10px;font-size:16px;font-family:inherit;text-align:right;outline:none;-webkit-user-select:text;user-select:text}
+
 @media (orientation:landscape) and (max-height:520px){
   #top{right:auto;width:46%}
   #side{position:fixed;right:10px;top:calc(8px + env(safe-area-inset-top))}
@@ -146,6 +208,7 @@ html:not([data-state=idle]) #start{display:none}
         <div class="nx-d"><b id="nx-dist">—</b><small>m</small><div id="nx-tgt"></div></div>
         <div class="nx-bar"><i id="nx-fill"></i></div>
       </div>
+      <div id="lanes"></div>
       <div id="nx-more"></div>
     </div>
     <div id="side">
@@ -169,12 +232,29 @@ html:not([data-state=idle]) #start{display:none}
     <div id="pts"><b id="pts-v">0</b><small>pts · tour <span id="lapn">0</span></small></div>
   </div>
 
+  <div id="vig"></div>
+  <div class="wz" id="wz-limit"><b id="wz-lim-v">69</b></div>
+  <div class="wz" id="wz-speed"><b id="wz-spd-v">0</b><small>km/h</small></div>
+  <div class="wz" id="wz-side">
+    <button id="wz-report" aria-label="Signaler"><svg viewBox="0 0 24 24" fill="none" stroke="#2d7ff9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5M12 17.5v.1"/></svg></button>
+    <button id="wz-vol" aria-label="Son"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+  </div>
+  <div class="wz" id="wz-bar">
+    <div class="wz-stats">
+      <div><b id="wz-lap">—</b><span>tour</span></div>
+      <div><b id="wz-delta">—</b><span>écart</span></div>
+      <div><b id="wz-rest">—</b><span>restant</span></div>
+    </div>
+    <div id="wz-foot"></div>
+  </div>
+
   <div id="menu">
     <h3>Réglages <button class="rb" id="menu-x" style="background:#eef0f3;color:#111;box-shadow:none" aria-label="Fermer">✕</button></h3>
     <h4>Affichage</h4>
     <div class="seg" id="seg-mode"><button data-m="race">Course</button><button data-m="waze">Waze</button></div>
     <div class="row">Voix (annonces des virages)<button class="sw" id="sw-voice" aria-label="Voix"></button></div>
     <div class="row">Nord en haut (carte fixe)<button class="sw" id="sw-north" aria-label="Nord en haut"></button></div>
+    <div class="row">Limitation de vitesse en km/h (0 = aucune)<input class="mini-in" id="in-limit" inputmode="numeric" maxlength="3" autocomplete="off"></div>
 
     <h4>Mode démo (voiture virtuelle)</h4>
     <div class="seg" id="seg-speed"><button data-f="1">×1</button><button data-f="2">×2</button><button data-f="4">×4</button></div>
@@ -212,13 +292,15 @@ const CFG = {
   scoreRef: 0.92,      // part de la vitesse conseillee qui donne 100 points
   randMin: 108,        // chronos aleatoires : secondes min
   randMax: 124,        // chronos aleatoires : secondes max
-  lookAhead: 900       // distance de trace affichee devant la voiture (m)
+  lookAhead: 900,      // distance de trace affichee devant la voiture (m)
+  speedLimit: 69       // limitation affichee en mode Waze (km/h) : au-dessus, la bulle passe au rouge
 };
 
 const $ = s => document.querySelector(s);
 const root = document.documentElement;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
+const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} };
 const wrapAng = a => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
 const store = {
   get(k, d){ try { const v = localStorage.getItem('piste.' + k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
@@ -502,6 +584,7 @@ function updateHud(){
   $('#t-last').textContent = G.laps.length ? fmt(G.laps[G.laps.length - 1].t, 2) : '—';
   $('#t-best').textContent = times.length ? fmt(Math.min(...times), 2) : '—';
   $('#pts-v').textContent = G.lapPts; $('#lapn').textContent = G.lapNo;
+  syncWaze(kmh, gn);
   // gps
   const g = $('#gps');
   if (G.demo){ g.textContent = 'DÉMO ×' + G.factor; g.className = 'ok'; }
@@ -516,7 +599,7 @@ function updateHud(){
     const off = G.anyFix && !G.hasFix;
     $('#nx-name').textContent = off ? 'Pas sur le circuit' : G.hasFix ? '—' : 'En attente du GPS';
     $('#nx-desc').textContent = off ? 'À ' + (G.dist >= 1000 ? (G.dist / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(G.dist) + ' m') + ' du tracé · la vitesse reste affichée' : '';
-    $('#nx-dist').textContent = '—'; $('#nx-tgt').textContent = ''; $('#nx-ic').innerHTML = ''; $('#nx-more').innerHTML = ''; $('#nx-fill').style.width = '0'; nx.classList.remove('brake'); $('#brake').classList.remove('on'); return; }
+    $('#nx-dist').textContent = '—'; $('#nx-tgt').textContent = ''; $('#nx-ic').innerHTML = ''; $('#nx-more').innerHTML = ''; $('#nx-fill').style.width = '0'; nx.classList.remove('brake'); $('#brake').classList.remove('on'); setLanes(null); return; }
   const first = up[0], c = first.c, need = brakeNeed(c, G.vDisp);
   const braking = need > 0 && first.d <= need + CFG.brakeMargin + G.vDisp * 0.3 && first.d > 0;
   $('#nx-ic').innerHTML = arrowSVG(c.dir, c.angle);
@@ -526,11 +609,52 @@ function updateHud(){
   $('#nx-dist').textContent = Math.max(0, Math.round(first.d / 5) * 5);
   $('#nx-fill').style.width = (clamp(1 - first.d / 300, 0, 1) * 100) + '%';
   nx.classList.toggle('brake', braking); $('#brake').classList.toggle('on', braking);
+  const waze = root.dataset.mode === 'waze';
+  if (waze && braking) $('#nx-desc').textContent = '⚠ Freine : ' + c.type + ' devant';
+  setLanes(waze && first.d < 600 ? c : null);
   $('#nx-more').innerHTML = up.slice(1).map(u => `<div class="mini">${arrowSVG(u.c.dir, u.c.angle)}${u.c.name}<span>${Math.round(u.c.angle / 5) * 5}° · ${Math.round(u.d / 10) * 10} m</span></div>`).join('');
   // voix
   const lab = (c.dir === 'L' ? 'gauche ' : 'droite ') + Math.round(c.angle / 5) * 5;
   if (first.d < 450 && first.d > 120) say(G.lapNo + ':' + c.id + ':a', (c.name.startsWith('Virage') ? '' : c.name + ', ') + lab + (c.type === 'épingle' ? ', épingle' : ''));
   if (braking) say(G.lapNo + ':' + c.id + ':b', 'Freine');
+}
+
+/* ========================= WAZE : limitation, alerte de vitesse, guidage de voies ========================= */
+G.over = false;
+function pulse(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function syncWaze(kmh, gn){
+  const sp = $('#wz-speed');
+  if (root.dataset.mode !== 'waze'){ G.over = false; sp.classList.remove('over'); return; }
+  const lim = CFG.speedLimit, live = G.anyFix || G.demo;
+  $('#wz-limit').style.visibility = lim > 0 ? 'visible' : 'hidden';
+  $('#wz-lim-v').textContent = lim;
+  $('#wz-spd-v').textContent = live ? kmh : '0';
+  const over = lim > 0 && live && kmh > lim;
+  if (over && !G.over){                                   // on repasse au-dessus : petite animation + alerte
+    sp.classList.add('over'); pulse(sp, 'pop'); pulse($('#wz-limit'), 'shake'); pulse($('#vig'), 'flash');
+    buzz([70, 40, 70]); speak('Limitation de vitesse, ' + lim);
+  }
+  if (!over && G.over) sp.classList.remove('over');       // en dessous : retour au blanc
+  G.over = over;
+  $('#wz-lap').textContent = G.lapStart != null ? fmt(gn - G.lapStart, 1) : '—';
+  const d = $('#t-delta'), wd = $('#wz-delta'); wd.textContent = d.textContent || '—'; wd.className = d.className;
+  $('#wz-rest').textContent = G.hasFix ? ((T.L - G.sDisp) / 1000).toFixed(1).replace('.', ',') + ' km' : '—';
+  $('#wz-foot').innerHTML = 'Dernier <b>' + $('#t-last').textContent + '</b> · Meilleur <b>' + $('#t-best').textContent + '</b> · <b>' + G.lapPts + '</b> pts';
+}
+function laneSVG(kind, dir, ang){
+  if (kind === 'S') return '<svg viewBox="-26 -26 52 52"><path d="M0,22 L0,-8" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><polygon points="0,-24 -11,-8 11,-8" fill="currentColor"/></svg>';
+  return arrowSVG(dir, ang);
+}
+function setLanes(c){                                      // trois voies, celle du virage en surbrillance
+  const el = $('#lanes');
+  if (!c){ el.classList.remove('on'); el.dataset.k = ''; return; }
+  const k = c.id + c.dir;
+  if (el.dataset.k !== k){
+    const ang = c.angle >= 130 ? 180 : clamp(c.angle, 40, 100), L = c.dir === 'L' ? ['T', 'S', 'S'] : ['S', 'S', 'T'];
+    el.innerHTML = L.map(t => `<div class="lane${t === 'T' ? ' act' : ''}">${laneSVG(t, c.dir, ang)}</div>`).join('');
+    el.dataset.k = k;
+  }
+  el.classList.add('on');
 }
 
 /* ========================= DESSIN (canvas) ========================= */
@@ -691,7 +815,11 @@ function setMode(m){ root.dataset.mode = m; store.set('mode', m); $('#btn-mode')
 $('#btn-mode').addEventListener('click', () => setMode(root.dataset.mode === 'waze' ? 'race' : 'waze'));
 document.querySelectorAll('#seg-mode button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.m)));
 function setSw(id, on){ $(id).classList.toggle('on', on); }
-$('#sw-voice').addEventListener('click', () => { G.voice = !G.voice; setSw('#sw-voice', G.voice); store.set('voice', G.voice); if (G.voice) speak('Voix activée'); });
+function syncVol(){ $('#wz-vol').style.opacity = G.voice ? 1 : 0.45; }
+$('#sw-voice').addEventListener('click', () => { G.voice = !G.voice; setSw('#sw-voice', G.voice); store.set('voice', G.voice); syncVol(); if (G.voice) speak('Voix activée'); });
+$('#wz-vol').addEventListener('click', () => { G.voice = !G.voice; setSw('#sw-voice', G.voice); store.set('voice', G.voice); syncVol(); if (G.voice) speak('Voix activée'); });
+$('#wz-report').addEventListener('click', () => toast('Signalé !', "Merci d'aider les autres Wazers"));
+$('#in-limit').addEventListener('change', () => { const v = parseInt($('#in-limit').value, 10); CFG.speedLimit = isFinite(v) && v >= 0 && v <= 300 ? v : 0; $('#in-limit').value = CFG.speedLimit; store.set('limit', CFG.speedLimit); });
 $('#sw-north').addEventListener('click', () => { G.northUp = !G.northUp; setSw('#sw-north', G.northUp); store.set('north', G.northUp); });
 function setFactor(f){ G.factor = f; document.querySelectorAll('#seg-speed button').forEach(b => b.classList.toggle('on', +b.dataset.f === f)); }
 document.querySelectorAll('#seg-speed button').forEach(b => b.addEventListener('click', () => setFactor(+b.dataset.f)));
@@ -724,12 +852,13 @@ $('#btn-clear').addEventListener('click', () => { G.laps = []; G.bestAuto = null
   T = buildTrack(TRACK);
   $('#st-circuit').textContent = TRACK.name + ' · ' + (T.L / 1000).toFixed(2).replace('.', ',') + ' km · ' + T.corners.length + ' virages détectés. Virages à venir, freinage, vitesse et chronos.';
   $('#note').textContent = 'Tracé : OpenStreetMap (© contributeurs). Les vitesses cibles et les points sont une estimation, pas un conseil de pilotage.';
-  setMode(store.get('mode', 'race')); G.voice = store.get('voice', false); setSw('#sw-voice', G.voice);
+  setMode(store.get('mode', 'race')); G.voice = store.get('voice', false); setSw('#sw-voice', G.voice); syncVol();
+  CFG.speedLimit = store.get('limit', CFG.speedLimit); $('#in-limit').value = CFG.speedLimit;
   G.northUp = store.get('north', false); setSw('#sw-north', G.northUp); setFactor(1);
   loadLaps(); resize(); requestAnimationFrame(frame);
 })();
 /* ================= MISE A JOUR AUTOMATIQUE ================= */
-const BUILD = '20261120161136';                 // remplace automatiquement a chaque publication (stamp.js)
+const BUILD = '20261120162939';                 // remplace automatiquement a chaque publication (stamp.js)
 const VERSION_URL = '../version.json';
 function doReload(u){ location.replace(u); }
 const canReload = () => root.dataset.state === 'idle';        // jamais pendant que tu roules
