@@ -113,7 +113,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 .info{text-align:right}
 .plate{font-size:21px;font-weight:700;letter-spacing:.4px}
 .model{font-size:14px;color:var(--mut2);margin-top:2px}
-.who{display:flex;align-items:center;gap:8px;padding:2px 0 14px;font-size:17px;font-weight:600}
+.who{display:flex;align-items:center;gap:8px;padding:2px 0 8px;font-size:17px;font-weight:600}
 .who .rate{font-size:14px;font-weight:500;background:var(--gray);border-radius:12px;padding:2px 9px}
 .act{display:flex;gap:10px;align-items:center;padding-top:12px;border-top:1px solid var(--line)}
 .msg{flex:1;height:46px;border-radius:23px;background:var(--gray);display:flex;align-items:center;padding:0 18px;color:var(--mut2);font-size:15px}
@@ -122,6 +122,58 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
 .short{display:flex;justify-content:space-around;padding:14px 0 2px;font-size:12.5px;font-weight:500;text-align:center}
 .short div{display:flex;flex-direction:column;align-items:center;gap:6px}
 .short .round{width:44px;height:44px}
+.hint{font-size:14px;color:var(--mut2);margin-top:3px}
+.chips{display:flex;gap:6px;padding:0 0 12px;overflow:hidden}
+.chip{font-size:12.5px;font-weight:500;background:var(--gray);border-radius:14px;padding:4px 10px;white-space:nowrap}
+.model2{font-size:12.5px;color:var(--mut2);margin-top:2px}
+
+/* fausse notification d'arrivee */
+#notif{position:fixed;z-index:30;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top));display:flex;gap:11px;align-items:center;
+  padding:11px 13px;background:rgba(250,250,250,.94);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:20px;
+  box-shadow:0 8px 28px #0004;transform:translateY(-170%);transition:transform .45s cubic-bezier(.2,1.15,.3,1);pointer-events:none}
+#notif.on{transform:none}
+.ni{width:38px;height:38px;border-radius:9px;background:#000;color:#fff;display:grid;place-items:center;font-weight:700;font-size:21px;flex:none}
+.nt{min-width:0;flex:1;font-size:14px;line-height:1.3}
+.nh{display:flex;justify-content:space-between;font-size:11.5px;color:#6b6b6b;letter-spacing:.3px;margin-bottom:1px}
+.nt b{display:block;font-size:14.5px}
+.nt .nb{color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ecran de fin de course (note + pourboire) */
+#end{position:fixed;inset:0;z-index:20;background:#fff;display:none;overflow:auto;
+  padding:calc(14px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom))}
+#app[data-state=done] ~ #end,#app[data-state=thanks] ~ #end{display:block}
+.pane-rate,.pane-thanks{display:none}
+#app[data-state=done] ~ #end .pane-rate{display:block;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+#app[data-state=thanks] ~ #end .pane-thanks{display:block;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+.end-x{width:44px;height:44px;border-radius:50%;background:var(--gray);border:0;display:grid;place-items:center;padding:0}
+.end-x svg{width:20px;height:20px}
+.end-top{text-align:center;margin-top:2px}
+.end-top .t{font-size:15px;color:var(--mut2);font-weight:500}
+.end-top .p{font-size:36px;font-weight:700;letter-spacing:-.8px;margin:2px 0}
+.avatar-lg{width:84px;height:84px;border-radius:50%;background:#d9d9d9;margin:14px auto 8px;display:grid;place-items:center;font-size:36px;font-weight:600;color:#555}
+.rate-q{text-align:center;font-size:21px;font-weight:600;letter-spacing:-.3px;margin:6px 8px 10px;line-height:1.25}
+.stars{display:flex;justify-content:center;gap:6px;margin-bottom:4px}
+.stars button{background:none;border:0;padding:2px;width:50px;height:50px}
+.stars svg{width:100%;height:100%;fill:#d9d9d9;transition:fill .15s,transform .15s}
+.stars button.on svg{fill:#ffc043}
+.stars button:active svg{transform:scale(.88)}
+.rate-lbl{text-align:center;min-height:20px;color:var(--mut2);font-size:15px;font-weight:500}
+.stats{display:flex;gap:8px;margin:14px 0 2px}
+.stat{flex:1;background:var(--gray);border-radius:12px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:16px;letter-spacing:-.2px}
+.stat span{font-size:12px;color:var(--mut2)}
+.tip-t{font-size:17px;font-weight:600;margin:20px 0 10px}
+.tips{display:flex;gap:8px;flex-wrap:wrap}
+.tipc{border:0;background:var(--gray);border-radius:22px;padding:12px 16px;font-size:15px;font-weight:600;font-family:inherit;color:#000}
+.tipc.sel{background:#000;color:#fff}
+.tip-h{color:var(--mut2);font-size:14px;margin:8px 2px 14px;min-height:18px}
+.pane-thanks{text-align:center;padding-top:56px}
+.check{width:96px;height:96px;border-radius:50%;background:var(--green);margin:0 auto 18px;display:grid;place-items:center}
+.check svg{width:48px;height:48px}
+.pane-thanks h2{font-size:30px;margin:0 0 10px;letter-spacing:-.5px}
+.th{font-size:17px;font-weight:500;margin:4px 0}
+.th2{color:var(--mut2);font-size:15px;margin-top:14px}
+.pane-thanks .cta{margin-top:34px}
 </style>
 </head>
 <body>
@@ -241,7 +293,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
           <div>
             <div class="nm">Eco <span class="seats"><svg><use href="#pers"/></svg>4</span></div>
             <div class="eta" id="t-eco"></div>
-            <div class="desc">Trajets abordables</div>
+            <div class="desc">Zéro frisson garanti</div>
           </div>
           <div class="price">14,20 €</div>
         </div>
@@ -250,7 +302,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
           <div>
             <div class="nm">Confort <span class="seats"><svg><use href="#pers"/></svg>4</span></div>
             <div class="eta" id="t-conf"></div>
-            <div class="desc">Voitures récentes</div>
+            <div class="desc">Ambiance ascenseur</div>
           </div>
           <div class="price">19,80 €</div>
         </div>
@@ -280,16 +332,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
     <!-- 3/4. CHAUFFEUR TROUVE / ARRIVE -->
     <div class="pane p-found">
       <div class="bar full" style="margin-top:0"><i></i></div>
-      <div class="head"><h3 id="status">Retrouvez votre chauffeur</h3><span class="pill">0 min</span></div>
+      <div class="head"><div><h3 id="status">Retrouvez votre chauffeur</h3><div class="hint" id="hint"></div></div><span class="pill" id="pill">0 min</span></div>
       <div style="border-top:1px solid var(--line);margin:0 -16px"></div>
       <div class="drv">
         <div class="vis">
           <svg class="ic"><use href="#car-sport"/></svg>
           <div class="avatar" id="ini"></div>
         </div>
-        <div class="info"><div class="plate" data-cfg="plate"></div><div class="model" data-cfg="car"></div></div>
+        <div class="info"><div class="plate" data-cfg="plate"></div><div class="model" data-cfg="car"></div><div class="model2" data-cfg="carSub"></div></div>
       </div>
       <div class="who"><span data-cfg="driver"></span><span class="rate">★ <span data-cfg="rating"></span></span></div>
+      <div class="chips" id="chips"></div>
       <div class="act">
         <div class="msg">Envoyer un message…</div>
         <div class="round"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>
@@ -304,6 +357,49 @@ html,body{margin:0;height:100%;overflow:hidden;background:#ececec;color:var(--in
   </div>
 </div>
 
+<!-- ECRAN DE FIN DE COURSE : appui long sur la pastille verte "0 min" quand le chauffeur est arrive -->
+<div id="end">
+  <button class="end-x" id="endx" aria-label="Fermer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <div class="pane-rate">
+    <div class="end-top"><div class="t">Course terminée</div><div class="p" data-cfg="price"></div><div class="t">Ultra Fast · 0 min d'attente</div></div>
+    <div class="avatar-lg" id="ini2"></div>
+    <div class="rate-q">Comment était votre course avec <span data-cfg="driver"></span> ?</div>
+    <div class="stars">
+      <button data-n="1"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.6 6 20.9l1.3-6.7-5-4.7 6.8-.8z"/></svg></button>
+      <button data-n="2"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.6 6 20.9l1.3-6.7-5-4.7 6.8-.8z"/></svg></button>
+      <button data-n="3"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.6 6 20.9l1.3-6.7-5-4.7 6.8-.8z"/></svg></button>
+      <button data-n="4"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.6 6 20.9l1.3-6.7-5-4.7 6.8-.8z"/></svg></button>
+      <button data-n="5"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.6 6 20.9l1.3-6.7-5-4.7 6.8-.8z"/></svg></button>
+    </div>
+    <div class="rate-lbl" id="ratelbl"></div>
+    <div class="stats" id="stats"></div>
+    <div class="tip-t">Ajouter un pourboire</div>
+    <div class="tips">
+      <button class="tipc" data-tip="none">Pas de pourboire</button>
+      <button class="tipc" data-tip="ten">10 %</button>
+      <button class="tipc" data-tip="meal">Mon repas</button>
+    </div>
+    <div class="tip-h" id="tiph"></div>
+    <button class="cta" id="sub">Valider</button>
+  </div>
+  <div class="pane-thanks">
+    <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2>Merci !</h2>
+    <div class="th" id="th-sub"></div>
+    <div class="th" id="th-tip"></div>
+    <div class="th2">Prochain trajet : 0 minute.</div>
+    <button class="cta" id="done">Terminé</button>
+  </div>
+</div>
+
+<!-- FAUSSE NOTIFICATION -->
+<div id="notif">
+  <div class="ni">V</div>
+  <div class="nt"><div class="nh"><span>VROOM</span><span>maintenant</span></div><b data-cfg="notifTitle"></b><div class="nb" data-cfg="notifBody"></div></div>
+</div>
+
 <script>
 /* ===== A MODIFIER ICI ===== */
 const CFG = {
@@ -314,8 +410,16 @@ const CFG = {
   rating: '5,00',
   car: 'Porsche 718 GT4 RS',
   plate: 'GT-718-RS',
-  searchMs: 1800,                // duree de "Connexion a un chauffeur" (cale-la sur l'arrivee de la vraie voiture)
-  driveMs: 1500,                 // duree de l'arrivee de la voiture sur la carte
+  carSub: '500 ch · limiteur à 9000',       // petite ligne sous le modele
+  chips: ['12 847 courses', 'Pilote certifié', '0 retard'],   // pastilles sous le nom du chauffeur
+  hintFound: 'Il arrive dans 0 min. Oui, 0.',
+  hintArrived: 'Vous avez 0 min pour monter.',
+  notifTitle: 'Votre chauffeur est arrivé',
+  notifBody: '',                 // vide = "chauffeur · voiture · plaque"
+  priceNum: 189,                 // pour calculer les 10 % de pourboire
+  endStats: [['Durée', '0 min 52 s'], ['Vitesse max', '273 km/h'], ['Régime max', '9000 rpm']],   // ecran de fin
+  searchMs: 3000,                // duree de "Connexion a un chauffeur" (cale-la sur l'arrivee de la vraie voiture)
+  driveMs: 4000,                 // duree de l'arrivee de la voiture sur la carte
   quote: 'Accroche ton slip à 9000 rpm.'   // citation fixe ; mets '' pour revenir aux citations du jour
 };
 
@@ -354,8 +458,11 @@ const $ = s => document.querySelector(s);
 const app = $('#app'), cta = $('#cta'), ultra = $('#opt-ultra');
 const rows = [...document.querySelectorAll('.opt')];
 
+CFG.notifBody = CFG.notifBody || `${CFG.driver} · ${CFG.car} · ${CFG.plate}`;
 document.querySelectorAll('[data-cfg]').forEach(e => e.textContent = CFG[e.dataset.cfg]);
-$('#ini').textContent = CFG.driver[0];
+$('#ini').textContent = CFG.driver[0]; $('#ini2').textContent = CFG.driver[0];
+$('#chips').innerHTML = CFG.chips.map(c => `<span class="chip">${c}</span>`).join('');
+$('#stats').innerHTML = CFG.endStats.map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
 $('#tripmin').textContent = CFG.tripMin;
 const dayNo = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
 $('#quote').textContent = CFG.quote || QUOTES[dayNo % QUOTES.length];
@@ -477,6 +584,7 @@ async function computeRoute(){
 function applyView(animate = true){
   if (!map || !curPos) return;
   const s = app.dataset.state, sh = $('.sheet').offsetHeight;
+  if (s === 'done' || s === 'thanks') return;
   map.invalidateSize();
   if (s === 'choose' && routeBounds) {
     map.fitBounds(routeBounds, {paddingTopLeft:[36, 110], paddingBottomRight:[36, sh + 50], animate, maxZoom:16});
@@ -495,7 +603,7 @@ function carPlace(e){                    // e : 0 (loin) -> 1 (arretee devant to
     return;
   }
   if (roadPath && roadPath.length > 1) {                // la voiture suit la vraie rue et s'arrete au point de route le plus proche
-    const P = roadPath.map(ll => { const p = map.latLngToContainerPoint(ll); return [p.x, p.y]; });
+    const P = roadPath.slice(carFrom).map(ll => { const p = map.latLngToContainerPoint(ll); return [p.x, p.y]; });
     const seg = []; let total = 0;
     for (let i = 1; i < P.length; i++) { const l = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); seg.push(l); total += l; }
     let s = total * e, i = 0;
@@ -544,17 +652,37 @@ cta.addEventListener('click', () => {
   searchTimer = setTimeout(() => found(my), CFG.searchMs);
 });
 
+/* freinage : vitesse constante, puis grosse deceleration sur les derniers 30 % (p : temps 0->1, retour : distance 0->1) */
+function brake(p){
+  const P0 = 0.7, k = 1 / (P0 + (1 - P0) / 2);
+  return p <= P0 ? k * p : k * P0 + k * ((p - P0) - (p - P0) * (p - P0) / (2 * (1 - P0)));
+}
+/* la voiture demarre du dernier point du trace qui est hors de l'ecran (ou sous la feuille du bas) : jamais d'apparition brutale */
+let carFrom = 0;
+function prepCar(){
+  carFrom = 0;
+  if (!useReal || !roadPath || roadPath.length < 2) return;
+  const top = document.querySelector('.sheet').getBoundingClientRect().top, M = 140;
+  for (let i = roadPath.length - 2; i >= 0; i--) {
+    const p = map.latLngToContainerPoint(roadPath[i]);
+    if (p.x < -M || p.x > innerWidth + M || p.y < -M || p.y > top) { carFrom = i; return; }
+  }
+}
+
 function found(my){
   if (my !== runId) return;
-  carPlace(0);
   app.dataset.state = 'found';
   $('#status').textContent = 'Retrouvez votre chauffeur';
+  $('#hint').textContent = CFG.hintFound;
+  if (map) applyView(false);                         // cadrage final tout de suite : pas de glissement pendant que la voiture roule
+  prepCar();
+  carPlace(0);
   ding(); buzz(60);
   const t0 = performance.now();
   (function step(t){
     if (my !== runId) return;                        // annule si on a appuye sur retour
     const p = Math.min(1, (t - t0) / CFG.driveMs);
-    carPlace(1 - Math.pow(1 - p, 4));                // arrive vite, freine fort
+    carPlace(brake(p));
     if (p < 1) requestAnimationFrame(step); else arrived(my);
   })(t0);
 }
@@ -562,12 +690,14 @@ function arrived(my){
   if (my !== runId) return;
   app.dataset.state = 'arrived';
   $('#status').textContent = 'Votre chauffeur est arrivé';
+  $('#hint').textContent = CFG.hintArrived;
   ding(); buzz([200, 80, 200]);
+  showNotif();
 }
 
 /* FLECHE RETOUR : revient a l'ecran de depart, avant l'animation */
 function resetAll(){
-  runId++; clearTimeout(searchTimer);
+  runId++; clearTimeout(searchTimer); hideNotif(); resetEnd();
   app.dataset.state = 'choose';
   rows.forEach(r => r.classList.remove('sel')); $('#opt-eco').classList.add('sel');
   cta.textContent = 'Choisir Eco';
@@ -580,6 +710,59 @@ new MutationObserver(() => {
   syncCar();
   if (map) applyView(true);
 }).observe(app, {attributes:true, attributeFilter:['data-state']});
+
+/* ================= NOTIFICATION + FIN DE COURSE ================= */
+let notifT = null;
+function showNotif(){
+  const n = $('#notif'); n.classList.add('on');
+  clearTimeout(notifT); notifT = setTimeout(() => n.classList.remove('on'), 4200);
+}
+function hideNotif(){ clearTimeout(notifT); $('#notif').classList.remove('on'); }
+
+/* appui long (0,7 s) sur la pastille verte "0 min" quand le chauffeur est arrive = ecran de fin de course */
+function goDone(){ if (app.dataset.state !== 'arrived') return; hideNotif(); buzz(30); app.dataset.state = 'done'; }
+(() => {
+  const pill = $('#pill'); let t;
+  const on = () => { t = setTimeout(goDone, 700); }, off = () => clearTimeout(t);
+  pill.addEventListener('touchstart', on, {passive:true});
+  ['touchend', 'touchcancel'].forEach(ev => pill.addEventListener(ev, off));
+  pill.addEventListener('mousedown', on);
+  ['mouseup', 'mouseleave'].forEach(ev => pill.addEventListener(ev, off));
+})();
+
+let rating = 0, tip = null;
+const LBL = ['', 'Décevant', 'Moyen', 'Bien', 'Très bien', 'Excellent !'];
+const stars = [...document.querySelectorAll('.stars button')], tipBtns = [...document.querySelectorAll('.tipc')];
+const money = x => x.toFixed(2).replace('.', ',') + ' €';
+function tipText(){
+  if (tip === 'none') return 'Aucun pourboire';
+  if (tip === 'ten')  return '10 % · ' + money(CFG.priceNum * 0.1);
+  if (tip === 'meal') return 'Pourboire : mon repas';
+  return '';
+}
+stars.forEach(b => b.addEventListener('click', () => {
+  rating = +b.dataset.n;
+  stars.forEach(s => s.classList.toggle('on', +s.dataset.n <= rating));
+  $('#ratelbl').textContent = LBL[rating]; buzz(10);
+}));
+tipBtns.forEach(b => b.addEventListener('click', () => {
+  tip = b.dataset.tip;
+  tipBtns.forEach(x => x.classList.toggle('sel', x === b));
+  $('#tiph').textContent = tipText(); buzz(10);
+}));
+$('#sub').addEventListener('click', () => {
+  $('#th-sub').textContent = `Note de ${rating || 5} ★ envoyée à ${CFG.driver}`;
+  $('#th-tip').textContent = tipText() || 'Aucun pourboire';
+  app.dataset.state = 'thanks'; buzz([20, 40, 20]);
+});
+$('#endx').addEventListener('click', resetAll);
+$('#done').addEventListener('click', resetAll);
+function resetEnd(){
+  rating = 0; tip = null;
+  stars.forEach(s => s.classList.remove('on')); tipBtns.forEach(x => x.classList.remove('sel'));
+  $('#ratelbl').textContent = ''; $('#tiph').textContent = '';
+}
+if (location.hash === '#fin') app.dataset.state = 'done';   // raccourci : ouvrir la page avec #fin pour voir l'ecran de fin
 
 /* ================= GPS + ADRESSE ================= */
 function setPickup(txt){ $('#pickup').textContent = txt; }
